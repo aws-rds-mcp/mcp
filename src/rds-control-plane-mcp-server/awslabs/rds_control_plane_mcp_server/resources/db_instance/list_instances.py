@@ -14,13 +14,13 @@
 
 """Resource for listing availble RDS DB Instances."""
 
-import asyncio
 import json
 from ...common.connection import RDSConnectionManager
 from ...common.constants import RESOURCE_PREFIX_DB_INSTANCE
 from ...common.decorator import handle_exceptions
 from ...common.models import InstanceListModel
 from ...common.server import mcp
+from ...common.utils import paginate_aws_api_call
 from .utils import format_instance_info
 from loguru import logger
 
@@ -61,19 +61,11 @@ async def list_instances() -> str:
     logger.info('Getting instance list resource')
     rds_client = RDSConnectionManager.get_connection()
 
-    instances = []
-    response = await asyncio.to_thread(rds_client.describe_db_instances)
-
-    for instance in response.get('DBInstances', []):
-        instances.append(format_instance_info(instance))
-
-    # pagination if there's a marker for next page
-    while 'Marker' in response:
-        response = await asyncio.to_thread(
-            rds_client.describe_db_instances, Marker=response['Marker']
-        )
-        for instance in response.get('DBInstances', []):
-            instances.append(format_instance_info(instance))
+    instances = await paginate_aws_api_call(
+        client_function=rds_client.describe_db_instances,
+        format_function=format_instance_info,
+        result_key='DBInstances'
+    )
 
     result = InstanceListModel(
         instances=instances, count=len(instances), resource_uri=RESOURCE_PREFIX_DB_INSTANCE

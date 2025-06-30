@@ -14,13 +14,13 @@
 
 """Resource for listing availble RDS DB Clusters."""
 
-import asyncio
 import json
 from ...common.connection import RDSConnectionManager
 from ...common.constants import RESOURCE_PREFIX_DB_CLUSTER
 from ...common.decorator import handle_exceptions
 from ...common.models import ClusterModel
 from ...common.server import mcp
+from ...common.utils import paginate_aws_api_call
 from .utils import format_cluster_info
 from loguru import logger
 from pydantic import BaseModel, Field
@@ -76,21 +76,12 @@ async def list_clusters() -> str:
     logger.info('Listing RDS clusters')
     rds_client = RDSConnectionManager.get_connection()
 
-    clusters = []
-    response = await asyncio.to_thread(rds_client.describe_db_clusters)
+    clusters = await paginate_aws_api_call(
+        client_function=rds_client.describe_db_clusters,
+        format_function=format_cluster_info,
+        result_key='DBClusters'
+    )
 
-    for cluster in response.get('DBClusters', []):
-        clusters.append(format_cluster_info(cluster))
-
-    #  pagination if there's a marker for next page
-    while 'Marker' in response:
-        response = await asyncio.to_thread(
-            rds_client.describe_db_clusters, Marker=response['Marker']
-        )
-        for cluster in response.get('DBClusters', []):
-            clusters.append(format_cluster_info(cluster))
-
-    # Create the model
     result = ClusterListModel(
         clusters=clusters, count=len(clusters), resource_uri=RESOURCE_PREFIX_DB_CLUSTER
     )

@@ -14,7 +14,10 @@
 
 """General utility functions for the RDS Control Plane MCP Server."""
 
-from typing import Any, Dict
+import asyncio
+from typing import Any, Dict, List, Callable, TypeVar
+
+T = TypeVar('T')
 
 
 def format_aws_response(response: Dict[str, Any]) -> Dict[str, Any]:
@@ -52,3 +55,35 @@ def convert_datetime_to_string(obj: Any) -> Any:
     elif isinstance(obj, list):
         return [convert_datetime_to_string(item) for item in obj]
     return obj
+
+
+async def paginate_aws_api_call(
+    client_function: Callable,
+    format_function: Callable[[Dict[str, Any]], T],
+    result_key: str,
+    **kwargs: Any
+) -> List[T]:
+    """Fetch all results using AWS API pagination.
+
+    Args:
+        client_function: Boto3 client function to call (e.g. rds_client.describe_db_clusters)
+        format_function: Function to format each item in the result
+        result_key: Key in the response that contains the list of items
+        **kwargs: Additional arguments to pass to the client function
+
+    Returns:
+        List of formatted results
+    """
+    results = []
+    response = await asyncio.to_thread(client_function, **kwargs)
+
+    for item in response.get(result_key, []):
+        results.append(format_function(item))
+
+    while 'Marker' in response:
+        kwargs['Marker'] = response['Marker']
+        response = await asyncio.to_thread(client_function, **kwargs)
+        for item in response.get(result_key, []):
+            results.append(format_function(item))
+
+    return results
