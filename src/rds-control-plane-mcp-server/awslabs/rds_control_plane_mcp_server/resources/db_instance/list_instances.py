@@ -16,11 +16,12 @@
 
 from ...common.connection import RDSConnectionManager
 from ...common.decorator import handle_exceptions
-from ...common.models import InstanceListModel
 from ...common.server import mcp
-from ...common.utils import paginate_aws_api_call
-from .utils import format_instance_summary, InstanceSummaryModel
+from ...common.utils import handle_paginated_aws_api_call
+from .utils import InstanceSummaryModel, format_instance_summary
 from loguru import logger
+from pydantic import BaseModel, Field
+from typing import List
 
 
 LIST_INSTANCES_RESOURCE_DESCRIPTION = """List all available Amazon RDS instances in your account.
@@ -59,7 +60,9 @@ Each instance object contains:
 class InstanceSummaryListModel(BaseModel):
     """DB instance summary list model."""
 
-    instances: List[InstanceSummaryModel] = Field(default_factory=list, description='List of DB instances')
+    instances: List[InstanceSummaryModel] = Field(
+        default_factory=list, description='List of DB instances'
+    )
     count: int = Field(description='Total number of DB instances')
     resource_uri: str = Field(description='The resource URI for the DB instances')
 
@@ -71,7 +74,7 @@ class InstanceSummaryListModel(BaseModel):
     description=LIST_INSTANCES_RESOURCE_DESCRIPTION,
 )
 @handle_exceptions
-async def list_instances() -> InstanceListModel:
+async def list_instances() -> InstanceSummaryListModel:
     """Get list of all RDS instances as a resource.
 
     Returns:
@@ -80,13 +83,15 @@ async def list_instances() -> InstanceListModel:
     logger.info('Getting instance list resource')
     rds_client = RDSConnectionManager.get_connection()
 
-    instances = await paginate_aws_api_call(
-        client_function=rds_client.describe_db_instances,
+    instances = handle_paginated_aws_api_call(
+        client=rds_client,
+        paginator_name='describe_db_instances',
+        operation_parameters={},
         format_function=format_instance_summary,
-        result_key='DBInstances'
+        result_key='DBInstances',
     )
 
-    result = InstanceListModel(
+    result = InstanceSummaryListModel(
         instances=instances, count=len(instances), resource_uri='aws-rds://db-instance'
     )
 

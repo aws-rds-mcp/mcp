@@ -18,6 +18,7 @@ from ...common.connection import PIConnectionManager
 from ...common.decorator import handle_exceptions
 from ...common.server import mcp
 from ...common.utils import convert_datetime_to_string
+from ...context import Context
 from pydantic import BaseModel, Field
 from typing import List, Literal
 
@@ -119,7 +120,7 @@ async def list_performance_reports(
     reports: List[PerformanceReportSummary] = []
 
     next_token = None
-    max_results = 20
+    max_results = Context.max_items()
 
     while True:
         if next_token:
