@@ -57,16 +57,6 @@ Each instance object contains:
 """
 
 
-class InstanceSummaryListModel(BaseModel):
-    """DB instance summary list model."""
-
-    instances: List[InstanceSummaryModel] = Field(
-        default_factory=list, description='List of DB instances'
-    )
-    count: int = Field(description='Total number of DB instances')
-    resource_uri: str = Field(description='The resource URI for the DB instances')
-
-
 @mcp.resource(
     uri='aws-rds://db-instance',
     name='ListDBInstances',
