@@ -18,7 +18,7 @@ import asyncio
 from ...common.connection import RDSConnectionManager
 from ...common.decorator import handle_exceptions
 from ...common.server import mcp
-from ...common.utils import convert_datetime_to_string
+from datetime import datetime
 from loguru import logger
 from mypy_boto3_rds.type_defs import DBClusterTypeDef
 from pydantic import BaseModel, Field
@@ -90,7 +90,7 @@ class Cluster(BaseModel):
     preferred_maintenance_window: Optional[str] = Field(
         None, description='The weekly time range during which system maintenance can occur'
     )
-    created_time: Optional[str] = Field(
+    created_time: Optional[datetime] = Field(
         None, description='The time when the DB cluster was created'
     )
     members: List[ClusterMember] = Field(
@@ -147,7 +147,7 @@ class Cluster(BaseModel):
             backup_retention=cluster.get('BackupRetentionPeriod', 0),
             preferred_backup_window=cluster.get('PreferredBackupWindow'),
             preferred_maintenance_window=cluster.get('PreferredMaintenanceWindow'),
-            created_time=convert_datetime_to_string(cluster.get('ClusterCreateTime')),
+            created_time=cluster.get('ClusterCreateTime'),
             members=members,
             vpc_security_groups=vpc_security_groups,
             tags=tags,

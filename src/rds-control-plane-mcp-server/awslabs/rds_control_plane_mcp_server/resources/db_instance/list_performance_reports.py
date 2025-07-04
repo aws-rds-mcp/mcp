@@ -17,8 +17,8 @@
 from ...common.connection import PIConnectionManager
 from ...common.decorator import handle_exceptions
 from ...common.server import mcp
-from ...common.utils import convert_datetime_to_string
 from ...context import Context
+from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import List, Literal, Optional
 
@@ -79,9 +79,9 @@ class PerformanceReportSummary(BaseModel):
     analysis_report_id: Optional[str] = Field(
         None, description='Unique identifier for the performance report'
     )
-    create_time: Optional[str] = Field(None, description='Time when the report was created')
-    start_time: Optional[str] = Field(None, description='Start time of the analysis period')
-    end_time: Optional[str] = Field(None, description='End time of the analysis period')
+    create_time: Optional[datetime] = Field(None, description='Time when the report was created')
+    start_time: Optional[datetime] = Field(None, description='Start time of the analysis period')
+    end_time: Optional[datetime] = Field(None, description='End time of the analysis period')
     status: Optional[Literal['RUNNING', 'SUCCEEDED', 'FAILED']] = Field(
         None, description='Current status of the report'
     )
@@ -141,9 +141,9 @@ async def list_performance_reports(
                 reports.append(
                     PerformanceReportSummary(
                         analysis_report_id=report.get('AnalysisReportId'),
-                        create_time=convert_datetime_to_string(report.get('CreateTime')),
-                        start_time=convert_datetime_to_string(report.get('StartTime')),
-                        end_time=convert_datetime_to_string(report.get('EndTime')),
+                        create_time=report.get('CreateTime'),
+                        start_time=report.get('StartTime'),
+                        end_time=report.get('EndTime'),
                         status=report.get('Status'),
                     )
                 )
