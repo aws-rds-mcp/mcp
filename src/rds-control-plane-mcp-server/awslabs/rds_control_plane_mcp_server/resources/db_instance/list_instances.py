@@ -12,17 +12,83 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Resource for listing availble RDS DB Instances."""
+"""Resource for listing available RDS DB Instances."""
 
 from ...common.connection import RDSConnectionManager
 from ...common.decorator import handle_exceptions
-from ...common.models import InstanceSummaryListModel
 from ...common.server import mcp
 from ...common.utils import handle_paginated_aws_api_call
-from .utils import format_instance_summary
 from loguru import logger
+from mypy_boto3_rds.type_defs import DBInstanceTypeDef
 from pydantic import BaseModel, Field
-from typing import List
+from typing import Dict, List, Optional
+
+
+class InstanceSummary(BaseModel):
+    """Simplified DB instance model for list views."""
+
+    instance_id: str = Field(description='The DB instance identifier')
+    dbi_resource_id: Optional[str] = Field(
+        None, description='The AWS Region-unique, immutable identifier for the DB instance'
+    )
+    status: str = Field(description='The current status of the DB instance')
+    engine: str = Field(description='The database engine')
+    engine_version: Optional[str] = Field(None, description='The version of the database engine')
+    instance_class: str = Field(
+        description='The compute and memory capacity class of the DB instance'
+    )
+    availability_zone: Optional[str] = Field(
+        None, description='The Availability Zone of the DB instance'
+    )
+    multi_az: bool = Field(description='Whether the DB instance is a Multi-AZ deployment')
+    publicly_accessible: bool = Field(description='Whether the DB instance is publicly accessible')
+    db_cluster: Optional[str] = Field(
+        None, description='The DB cluster identifier, if this is a member of a DB cluster'
+    )
+    tag_list: Dict[str, str] = Field(default_factory=dict, description='A list of tags')
+    resource_uri: Optional[str] = Field(None, description='The resource URI for this instance')
+
+
+class InstanceSummaryList(BaseModel):
+    """DB instance list model."""
+
+    instances: List[InstanceSummary] = Field(description='List of DB instances')
+    count: int = Field(description='Number of DB instances')
+    resource_uri: str = Field(description='The resource URI for instances')
+
+
+def format_instance_summary(instance: DBInstanceTypeDef) -> InstanceSummary:
+    """Format instance information into a simplified model for list views.
+
+    This returns a simplified InstanceSummary with only essential fields
+    to provide a high-level overview of instances.
+
+    Args:
+        instance: Raw instance data from AWS API response
+
+    Returns:
+        Formatted instance information as an InstanceSummary object
+    """
+    tags = {}
+    if instance.get('TagList'):
+        for tag in instance.get('TagList', []):
+            if 'Key' in tag and 'Value' in tag:
+                tags[tag['Key']] = tag['Value']
+
+    return InstanceSummary(
+        instance_id=instance.get('DBInstanceIdentifier', ''),
+        dbi_resource_id=instance.get('DbiResourceId'),
+        status=instance.get('DBInstanceStatus', ''),
+        engine=instance.get('Engine', ''),
+        engine_version=instance.get('EngineVersion', ''),
+        instance_class=instance.get('DBInstanceClass', ''),
+        availability_zone=instance.get('AvailabilityZone'),
+        multi_az=instance.get('MultiAZ', False),
+        publicly_accessible=instance.get('PubliclyAccessible', False),
+        db_cluster=instance.get('DBClusterIdentifier'),
+        tag_list=tags,
+        resource_uri=None,
+    )
 
 
 LIST_INSTANCES_RESOURCE_DESCRIPTION = """List all available Amazon RDS instances in your account.
@@ -54,7 +120,10 @@ Each instance object contains:
 - `instance_class`: The instance type (e.g., db.t3.medium)
 - `availability_zone`: The AZ where the instance is located
 - `multi_az`: Whether the instance has Multi-AZ deployment
-- Other essential instance attributes
+- `publicly_accessible`: Whether the instance is publicly accessible
+- `db_cluster`: The DB cluster identifier (if applicable)
+- `tag_list`: Dictionary of instance tags
+- `resource_uri`: The resource URI for this instance
 """
 
 
@@ -65,7 +134,7 @@ Each instance object contains:
     description=LIST_INSTANCES_RESOURCE_DESCRIPTION,
 )
 @handle_exceptions
-async def list_instances() -> InstanceSummaryListModel:
+async def list_instances() -> InstanceSummaryList:
     """List all RDS instances.
 
     Retrieves a complete list of all RDS database instances in the current AWS region,
@@ -73,8 +142,8 @@ async def list_instances() -> InstanceSummaryListModel:
     for large result sets.
 
     Returns:
-        JSON string with formatted instance information including identifiers,
-        endpoints, engine details, and other relevant metadata
+        InstanceSummaryList containing formatted instance information including identifiers,
+        status, engine details, and other relevant metadata
     """
     logger.info('Getting instance list resource')
     rds_client = RDSConnectionManager.get_connection()
@@ -87,7 +156,7 @@ async def list_instances() -> InstanceSummaryListModel:
         result_key='DBInstances',
     )
 
-    result = InstanceSummaryListModel(
+    result = InstanceSummaryList(
         instances=instances, count=len(instances), resource_uri='aws-rds://db-instance'
     )
 

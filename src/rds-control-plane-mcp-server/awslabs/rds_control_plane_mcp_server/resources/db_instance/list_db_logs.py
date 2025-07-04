@@ -78,7 +78,7 @@ class DBLogFileSummary(BaseModel):
     size: int = Field(description='Size of the log file in bytes', ge=0)
 
 
-class DBLogFileListModel(BaseModel):
+class DBLogFileList(BaseModel):
     """DB cluster list model."""
 
     log_files: List[DBLogFileSummary] = Field(
@@ -99,14 +99,14 @@ class DBLogFileListModel(BaseModel):
 @handle_exceptions
 async def list_db_log_files(
     db_instance_identifier: str = Field(..., description='The identifier for the DB instance'),
-) -> DBLogFileListModel:
+) -> DBLogFileList:
     """List all non-empty log files for the database.
 
     Args:
         db_instance_identifier: The identifier of the DB instance.
 
     Returns:
-        JSON string containing a list of DBLogFileOverview objects representing non-empty log files.
+        DBLogFileList: A model containing a list of DBLogFileSummary objects
     """
     rds_client = RDSConnectionManager.get_connection()
 
@@ -122,7 +122,7 @@ async def list_db_log_files(
         result_key='DescribeDBLogFiles',
     )
 
-    result = DBLogFileListModel(
+    result = DBLogFileList(
         log_files=log_files,
         count=len(log_files),
         resource_uri='aws-rds://db-instance/{db_instance_identifier}/log',

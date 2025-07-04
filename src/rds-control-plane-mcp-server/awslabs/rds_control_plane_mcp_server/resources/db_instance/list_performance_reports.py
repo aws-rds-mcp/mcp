@@ -87,7 +87,7 @@ class PerformanceReportSummary(BaseModel):
     )
 
 
-class PerformanceReportListModel(BaseModel):
+class PerformanceReportList(BaseModel):
     """Performance report list model for RDS instances."""
 
     reports: List[PerformanceReportSummary] = Field(
@@ -109,7 +109,7 @@ async def list_performance_reports(
         ...,
         description='The resource identifier for the DB instance. This is the DbiResourceId returned by the ListDBInstances resource',
     ),
-) -> PerformanceReportListModel:
+) -> PerformanceReportList:
     """Retrieve all performance reports for a given DB instance.
 
     Args:
@@ -157,7 +157,7 @@ async def list_performance_reports(
 
     resource_uri = f'aws-rds://db-instance/{dbi_resource_identifier}/performance_report'
 
-    result = PerformanceReportListModel(
+    result = PerformanceReportList(
         reports=reports,
         count=len(reports),
         resource_uri=resource_uri,
