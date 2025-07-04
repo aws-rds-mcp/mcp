@@ -15,7 +15,6 @@
 """read_rds_db_logs data models, helpers and tool implementation."""
 
 import asyncio
-import json
 from ...common.connection import RDSConnectionManager
 from ...common.decorator import handle_exceptions
 from ...common.server import mcp
@@ -126,7 +125,7 @@ async def read_db_log_file(
         None,
         description='The pattern to filter log entries. Only returns lines that contain the specified pattern string.',
     ),
-) -> str:
+) -> DBLogFileResponse:
     """Retrieve RDS database log file contents.
 
     Args:
@@ -137,7 +136,7 @@ async def read_db_log_file(
         pattern: Optional filter pattern to only return matching lines
 
     Returns:
-        str: A JSON string containing the log content, pagination marker, and pending data flag
+        DBLogFileResponse: A data model containing the log content, pagination marker, and pending data flag
     """
     rds_client = RDSConnectionManager.get_connection()
 
@@ -160,5 +159,4 @@ async def read_db_log_file(
         additional_data_pending=response.get('AdditionalDataPending', False),
     )
 
-    serializable_dict = result.model_dump()
-    return json.dumps(serializable_dict, indent=2)
+    return result
