@@ -18,7 +18,7 @@ from ...common.connection import RDSConnectionManager
 from ...common.decorator import handle_exceptions
 from ...common.server import mcp
 from ...common.utils import handle_paginated_aws_api_call
-from .utils import InstanceSummaryModel, format_instance_summary
+from .utils import format_instance_summary, InstanceSummaryModel
 from loguru import logger
 from pydantic import BaseModel, Field
 from typing import List
@@ -58,7 +58,7 @@ Each instance object contains:
 
 
 class InstanceSummaryListModel(BaseModel):
-    """DB instance summary list model."""
+    """DB instance list model."""
 
     instances: List[InstanceSummaryModel] = Field(
         default_factory=list, description='List of DB instances'
@@ -75,10 +75,15 @@ class InstanceSummaryListModel(BaseModel):
 )
 @handle_exceptions
 async def list_instances() -> InstanceSummaryListModel:
-    """Get list of all RDS instances as a resource.
+    """List all RDS instances.
+
+    Retrieves a complete list of all RDS database instances in the current AWS region,
+    including Aurora instances and standard RDS instances, with pagination handling
+    for large result sets.
 
     Returns:
-        JSON string with instance list
+        JSON string with formatted instance information including identifiers,
+        endpoints, engine details, and other relevant metadata
     """
     logger.info('Getting instance list resource')
     rds_client = RDSConnectionManager.get_connection()
