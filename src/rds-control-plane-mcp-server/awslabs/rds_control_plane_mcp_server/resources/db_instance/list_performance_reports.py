@@ -14,6 +14,7 @@
 
 """Resource for listing available RDS DB Performance Reports."""
 
+import asyncio
 from ...common.connection import PIConnectionManager
 from ...common.decorator import handle_exceptions
 from ...common.server import mcp
@@ -134,7 +135,9 @@ async def list_performance_reports(
         if next_token:
             request_params['NextToken'] = next_token
 
-        response = pi_client.list_performance_analysis_reports(**request_params)
+        response = await asyncio.to_thread(
+            pi_client.list_performance_analysis_reports, **request_params
+        )
 
         if 'AnalysisReports' in response:
             for report in response['AnalysisReports']:

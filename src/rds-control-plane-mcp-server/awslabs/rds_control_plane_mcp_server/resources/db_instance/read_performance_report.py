@@ -14,6 +14,7 @@
 
 """Resource for reading RDS Performance Reports for a RDS DB Instance."""
 
+import asyncio
 from ...common.connection import PIConnectionManager
 from ...common.decorator import handle_exceptions
 from ...common.server import mcp
@@ -109,12 +110,14 @@ async def read_performance_report(
     )
     pi_client = PIConnectionManager.get_connection()
 
-    response = pi_client.get_performance_analysis_report(
-        ServiceType='RDS',
-        Identifier=dbi_resource_identifier,
-        AnalysisReportId=report_id,
-        TextFormat='MARKDOWN',
-    )
+    params = {
+        'ServiceType': 'RDS',
+        'Identifier': dbi_resource_identifier,
+        'AnalysisReportId': report_id,
+        'TextFormat': 'MARKDOWN',
+    }
+
+    response = await asyncio.to_thread(pi_client.get_performance_analysis_report, **params)
 
     analysis_report = response.get('AnalysisReport', {})
     return AnalysisReport.model_validate(analysis_report)
