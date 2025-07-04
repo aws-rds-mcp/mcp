@@ -91,6 +91,6 @@ async def get_cluster_detail(
     if not clusters:
         raise ValueError(f'Cluster {cluster_id} not found')
     cluster = format_cluster_detail(clusters[0])
-    cluster.resource_uri = 'aws-rds://db-cluster/{cluster_id}'
+    cluster.resource_uri = f'aws-rds://db-cluster/{cluster_id}'
 
     return cluster
