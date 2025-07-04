@@ -20,7 +20,10 @@ from functools import wraps
 from inspect import iscoroutinefunction
 from loguru import logger
 from typing import Any, Callable
-from ..common.constants import ERROR_AWS_API, ERROR_UNEXPECTED
+
+
+ERROR_AWS_API = 'AWS API error: {}'
+ERROR_UNEXPECTED = 'Unexpected error: {}'
 
 
 def handle_exceptions(func: Callable) -> Callable:
@@ -48,23 +51,29 @@ def handle_exceptions(func: Callable) -> Callable:
                 error_code = error.response['Error']['Code']
                 error_message = error.response['Error']['Message']
                 logger.error(f'Failed with AWS error {error_code}: {error_message}')
-                
+
                 # JSON error response
-                return json.dumps({
-                    "error": ERROR_AWS_API.format(error_code),
-                    "error_code": error_code,
-                    "error_message": error_message,
-                    "operation": func.__name__
-                }, indent=2)
+                return json.dumps(
+                    {
+                        'error': ERROR_AWS_API.format(error_code),
+                        'error_code': error_code,
+                        'error_message': error_message,
+                        'operation': func.__name__,
+                    },
+                    indent=2,
+                )
             else:
                 logger.exception(f'Failed with unexpected error: {str(error)}')
-                
+
                 # general exceptions
-                return json.dumps({
-                    "error": ERROR_UNEXPECTED.format(str(error)),
-                    "error_type": type(error).__name__,
-                    "error_message": str(error),
-                    "operation": func.__name__
-                }, indent=2)
+                return json.dumps(
+                    {
+                        'error': ERROR_UNEXPECTED.format(str(error)),
+                        'error_type': type(error).__name__,
+                        'error_message': str(error),
+                        'operation': func.__name__,
+                    },
+                    indent=2,
+                )
 
     return wrapper

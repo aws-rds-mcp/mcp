@@ -15,16 +15,11 @@
 """awslabs RDS Control Plane MCP Server implementation."""
 
 import argparse
-from awslabs.rds_control_plane_mcp_server.common.constants import MCP_SERVER_VERSION
 from awslabs.rds_control_plane_mcp_server.common.server import mcp
 from awslabs.rds_control_plane_mcp_server.context import Context
-from awslabs.rds_control_plane_mcp_server.resources.db_cluster import get_cluster_detail, list_clusters
-from awslabs.rds_control_plane_mcp_server.resources.db_instance import (
-    get_instance_detail, 
-    list_instances,
-    list_performance_reports,
-    read_performance_report,
-    list_db_log_files
+from awslabs.rds_control_plane_mcp_server.resources import (  # noqa: F401 - imported for side effects to register resources
+    db_cluster,
+    db_instance,
 )
 from loguru import logger
 
@@ -38,6 +33,7 @@ def main():
     parser.add_argument('--port', type=int, default=8888, help='Port to run the server on')
     parser.add_argument(
         '--max-items',
+        default=100,
         type=int,
         help='The maximum number of items (logs, reports, etc.) to retrieve',
     )
@@ -53,7 +49,7 @@ def main():
     mcp.settings.port = args.port
     Context.initialize(args.readonly, args.max_items)
 
-    logger.info(f'Starting RDS Control Plane MCP Server v{MCP_SERVER_VERSION}')
+    logger.info('Starting RDS Control Plane MCP Server')
 
     # default streamable HTTP transport
     mcp.run()
