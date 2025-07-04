@@ -21,6 +21,9 @@ from awslabs.rds_control_plane_mcp_server.resources import (  # noqa: F401 - imp
     db_cluster,
     db_instance,
 )
+from awslabs.rds_control_plane_mcp_server.tools import (  # noqa: F401 - imported for side effects to register tools
+    db_instance as db_instance_tools,
+)
 from loguru import logger
 
 
