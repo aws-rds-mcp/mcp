@@ -16,12 +16,11 @@
 
 from ...common.connection import RDSConnectionManager
 from ...common.decorator import handle_exceptions
+from ...common.models import ClusterModel, ClusterListModel
 from ...common.server import mcp
 from ...common.utils import handle_paginated_aws_api_call
 from .utils import ClusterSummaryModel, format_cluster_summary
 from loguru import logger
-from pydantic import BaseModel, Field
-from typing import List
 
 
 LIST_CLUSTERS_RESOURCE_DESCRIPTION = """List all available Amazon RDS clusters in your account.
@@ -42,16 +41,6 @@ Returns a JSON document containing:
 - `count`: Number of clusters found
 - `resource_uri`: Base URI for accessing clusters
 """
-
-
-class ClusterListModel(BaseModel):
-    """DB cluster list model."""
-
-    clusters: List[ClusterSummaryModel] = Field(
-        default_factory=list, description='List of DB clusters'
-    )
-    count: int = Field(description='Total number of DB clusters')
-    resource_uri: str = Field(description='The resource URI for the DB clusters')
 
 
 @mcp.resource(
