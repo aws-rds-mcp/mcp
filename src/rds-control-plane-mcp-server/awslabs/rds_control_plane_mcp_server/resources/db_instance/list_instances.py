@@ -48,6 +48,37 @@ class InstanceSummary(BaseModel):
     tag_list: Dict[str, str] = Field(default_factory=dict, description='A list of tags')
     resource_uri: Optional[str] = Field(None, description='The resource URI for this instance')
 
+    @classmethod
+    def from_DBInstanceTypeDef(cls, instance: DBInstanceTypeDef) -> 'InstanceSummary':
+        """Format instance information into a simplified model for list views.
+
+        Args:
+            instance: Raw instance data from AWS API response
+
+        Returns:
+            Formatted instance information as an InstanceSummary object
+        """
+        tags = {}
+        if instance.get('TagList'):
+            for tag in instance.get('TagList', []):
+                if 'Key' in tag and 'Value' in tag:
+                    tags[tag['Key']] = tag['Value']
+
+        return InstanceSummary(
+            instance_id=instance.get('DBInstanceIdentifier', ''),
+            dbi_resource_id=instance.get('DbiResourceId'),
+            status=instance.get('DBInstanceStatus', ''),
+            engine=instance.get('Engine', ''),
+            engine_version=instance.get('EngineVersion', ''),
+            instance_class=instance.get('DBInstanceClass', ''),
+            availability_zone=instance.get('AvailabilityZone'),
+            multi_az=instance.get('MultiAZ', False),
+            publicly_accessible=instance.get('PubliclyAccessible', False),
+            db_cluster=instance.get('DBClusterIdentifier'),
+            tag_list=tags,
+            resource_uri=None,
+        )
+
 
 class InstanceSummaryList(BaseModel):
     """DB instance list model."""
@@ -55,40 +86,6 @@ class InstanceSummaryList(BaseModel):
     instances: List[InstanceSummary] = Field(description='List of DB instances')
     count: int = Field(description='Number of DB instances')
     resource_uri: str = Field(description='The resource URI for instances')
-
-
-def format_instance_summary(instance: DBInstanceTypeDef) -> InstanceSummary:
-    """Format instance information into a simplified model for list views.
-
-    This returns a simplified InstanceSummary with only essential fields
-    to provide a high-level overview of instances.
-
-    Args:
-        instance: Raw instance data from AWS API response
-
-    Returns:
-        Formatted instance information as an InstanceSummary object
-    """
-    tags = {}
-    if instance.get('TagList'):
-        for tag in instance.get('TagList', []):
-            if 'Key' in tag and 'Value' in tag:
-                tags[tag['Key']] = tag['Value']
-
-    return InstanceSummary(
-        instance_id=instance.get('DBInstanceIdentifier', ''),
-        dbi_resource_id=instance.get('DbiResourceId'),
-        status=instance.get('DBInstanceStatus', ''),
-        engine=instance.get('Engine', ''),
-        engine_version=instance.get('EngineVersion', ''),
-        instance_class=instance.get('DBInstanceClass', ''),
-        availability_zone=instance.get('AvailabilityZone'),
-        multi_az=instance.get('MultiAZ', False),
-        publicly_accessible=instance.get('PubliclyAccessible', False),
-        db_cluster=instance.get('DBClusterIdentifier'),
-        tag_list=tags,
-        resource_uri=None,
-    )
 
 
 LIST_INSTANCES_RESOURCE_DESCRIPTION = """List all available Amazon RDS instances in your account.
@@ -152,7 +149,7 @@ async def list_instances() -> InstanceSummaryList:
         client=rds_client,
         paginator_name='describe_db_instances',
         operation_parameters={},
-        format_function=format_instance_summary,
+        format_function=InstanceSummary.from_DBInstanceTypeDef,
         result_key='DBInstances',
     )
 

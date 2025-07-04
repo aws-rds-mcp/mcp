@@ -17,10 +17,46 @@
 import asyncio
 from ...common.connection import RDSConnectionManager
 from ...common.decorator import handle_exceptions
+from ...common.server import mcp
 from loguru import logger
 from mypy_boto3_rds.type_defs import DBInstanceTypeDef
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional
+
+
+GET_INSTANCE_DETAIL_DOCSTRING = """Get detailed information about a specific Amazon RDS instance.
+
+Use this resource to retrieve comprehensive details about a specific RDS database instance
+identified by its instance ID. This provides deeper insights than the instance list resource,
+including configuration, status, endpoints, storage details and more.
+
+Important notes:
+1. The response contains full configuration details about the specified instance
+2. This resource includes information not available in the list view such as storage details,
+   parameter groups, backup configuration, maintenance windows and security settings
+3. Use the instance list resource first to identify valid instance IDs
+4. Error responses will be returned if the instance doesn't exist or there are permission issues
+5. The response includes all tags associated with the instance
+6. Security group information includes both the ID and current status
+
+Response fields:
+- instance_id: The unique identifier for the instance
+- status: Current operational status of the instance
+- engine: Database engine type (e.g. mysql, postgres)
+- engine_version: The version of the database engine
+- endpoint: Connection endpoint information including address, port and hosted zone
+- instance_class: The compute and memory capacity of the instance
+- availability_zone: The AZ where the instance is located
+- multi_az: Whether the instance is a Multi-AZ deployment
+- storage: Detailed storage configuration including type, allocation and encryption status
+- preferred_backup_window: When automated backups occur
+- preferred_maintenance_window: When maintenance operations can occur
+- publicly_accessible: Whether the instance is publicly accessible
+- vpc_security_groups: Security groups associated with the instance
+- db_cluster: The DB cluster identifier if this instance is part of a cluster
+- tags: Any tags associated with the instance
+- resource_uri: The full resource URI for this specific instance
+"""
 
 
 class InstanceEndpoint(BaseModel):
@@ -79,99 +115,70 @@ class Instance(BaseModel):
     )
     resource_uri: Optional[str] = Field(None, description='The resource URI for this instance')
 
+    @classmethod
+    def from_DBInstanceTypeDef(cls, instance: DBInstanceTypeDef) -> 'Instance':
+        """Format instance information into a detailed model with comprehensive information.
 
-def format_instance_detail(instance: DBInstanceTypeDef) -> Instance:
-    """Format instance information into a detailed model with comprehensive information.
+        Takes raw instance data from AWS and formats it into a structured Instance model
+        containing all relevant details about the RDS instance configuration.
 
-    Takes raw instance data from AWS and formats it into a structured Instance model
-    containing all relevant details about the RDS instance configuration.
+        Args:
+            instance: Raw instance data from AWS
 
-    Args:
-        instance: Raw instance data from AWS
-
-    Returns:
-        Instance: Formatted instance information with comprehensive details
-    """
-    endpoint = InstanceEndpoint(
-        address=instance.get('Endpoint', {}).get('Address'),
-        hosted_zone_id=instance.get('Endpoint', {}).get('HostedZoneId'),
-        port=instance.get('Endpoint', {}).get('Port'),
-    )
-
-    storage = InstanceStorage(
-        type=instance.get('StorageType'),
-        allocated=instance.get('AllocatedStorage'),
-        encrypted=instance.get('StorageEncrypted'),
-    )
-
-    vpc_security_groups = []
-    for sg in instance.get('VpcSecurityGroups', []):
-        vpc_security_groups.append(
-            {'id': sg.get('VpcSecurityGroupId', ''), 'status': sg.get('Status', '')}
+        Returns:
+            Instance: Formatted instance information with comprehensive details
+        """
+        endpoint = InstanceEndpoint(
+            address=instance.get('Endpoint', {}).get('Address'),
+            hosted_zone_id=instance.get('Endpoint', {}).get('HostedZoneId'),
+            port=instance.get('Endpoint', {}).get('Port'),
         )
 
-    tags = {}
-    if instance.get('TagList'):
-        for tag in instance.get('TagList', []):
-            if 'Key' in tag and 'Value' in tag:
-                tags[tag['Key']] = tag['Value']
+        storage = InstanceStorage(
+            type=instance.get('StorageType'),
+            allocated=instance.get('AllocatedStorage'),
+            encrypted=instance.get('StorageEncrypted'),
+        )
 
-    return Instance(
-        instance_id=instance.get('DBInstanceIdentifier', ''),
-        status=instance.get('DBInstanceStatus', ''),
-        engine=instance.get('Engine', ''),
-        engine_version=instance.get('EngineVersion', ''),
-        instance_class=instance.get('DBInstanceClass', ''),
-        endpoint=endpoint,
-        availability_zone=instance.get('AvailabilityZone'),
-        multi_az=instance.get('MultiAZ', False),
-        storage=storage,
-        preferred_backup_window=instance.get('PreferredBackupWindow'),
-        preferred_maintenance_window=instance.get('PreferredMaintenanceWindow'),
-        publicly_accessible=instance.get('PubliclyAccessible', False),
-        vpc_security_groups=vpc_security_groups,
-        db_cluster=instance.get('DBClusterIdentifier'),
-        tags=tags,
-        dbi_resource_id=instance.get('DbiResourceId'),
-        resource_uri=None,
-    )
+        vpc_security_groups = []
+        for sg in instance.get('VpcSecurityGroups', []):
+            vpc_security_groups.append(
+                {'id': sg.get('VpcSecurityGroupId', ''), 'status': sg.get('Status', '')}
+            )
 
+        tags = {}
+        if instance.get('TagList'):
+            for tag in instance.get('TagList', []):
+                if 'Key' in tag and 'Value' in tag:
+                    tags[tag['Key']] = tag['Value']
 
-GET_INSTANCE_DETAIL_DOCSTRING = """Get detailed information about a specific Amazon RDS instance.
-
-Use this resource to retrieve comprehensive details about a specific RDS database instance
-identified by its instance ID. This provides deeper insights than the instance list resource,
-including configuration, status, endpoints, storage details and more.
-
-Important notes:
-1. The response contains full configuration details about the specified instance
-2. This resource includes information not available in the list view such as storage details,
-   parameter groups, backup configuration, maintenance windows and security settings
-3. Use the instance list resource first to identify valid instance IDs
-4. Error responses will be returned if the instance doesn't exist or there are permission issues
-5. The response includes all tags associated with the instance
-6. Security group information includes both the ID and current status
-
-Response fields:
-- instance_id: The unique identifier for the instance
-- status: Current operational status of the instance
-- engine: Database engine type (e.g. mysql, postgres)
-- engine_version: The version of the database engine
-- endpoint: Connection endpoint information including address, port and hosted zone
-- instance_class: The compute and memory capacity of the instance
-- availability_zone: The AZ where the instance is located
-- multi_az: Whether the instance is a Multi-AZ deployment
-- storage: Detailed storage configuration including type, allocation and encryption status
-- preferred_backup_window: When automated backups occur
-- preferred_maintenance_window: When maintenance operations can occur
-- publicly_accessible: Whether the instance is publicly accessible
-- vpc_security_groups: Security groups associated with the instance
-- db_cluster: The DB cluster identifier if this instance is part of a cluster
-- tags: Any tags associated with the instance
-- resource_uri: The full resource URI for this specific instance
-"""
+        return Instance(
+            instance_id=instance.get('DBInstanceIdentifier', ''),
+            status=instance.get('DBInstanceStatus', ''),
+            engine=instance.get('Engine', ''),
+            engine_version=instance.get('EngineVersion', ''),
+            instance_class=instance.get('DBInstanceClass', ''),
+            endpoint=endpoint,
+            availability_zone=instance.get('AvailabilityZone'),
+            multi_az=instance.get('MultiAZ', False),
+            storage=storage,
+            preferred_backup_window=instance.get('PreferredBackupWindow'),
+            preferred_maintenance_window=instance.get('PreferredMaintenanceWindow'),
+            publicly_accessible=instance.get('PubliclyAccessible', False),
+            vpc_security_groups=vpc_security_groups,
+            db_cluster=instance.get('DBClusterIdentifier'),
+            tags=tags,
+            dbi_resource_id=instance.get('DbiResourceId'),
+            resource_uri=None,
+        )
 
 
+@mcp.resource(
+    uri='aws-rds://db-instance/{instance_id}',
+    name='GetDBInstanceDetails',
+    mime_type='application/json',
+    description=GET_INSTANCE_DETAIL_DOCSTRING,
+)
 @handle_exceptions
 async def get_instance_detail(
     instance_id: str = Field(..., description='The instance identifier'),
@@ -198,7 +205,7 @@ async def get_instance_detail(
     if not instances:
         raise ValueError(f'Instance {instance_id} not found')
 
-    instance = format_instance_detail(instances[0])
+    instance = Instance.from_DBInstanceTypeDef(instances[0])
     instance.resource_uri = f'aws-rds://db-instance/{instance_id}'
 
     return instance

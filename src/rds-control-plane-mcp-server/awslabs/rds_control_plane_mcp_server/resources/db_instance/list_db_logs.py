@@ -19,6 +19,7 @@ from ...common.decorator import handle_exceptions
 from ...common.server import mcp
 from ...common.utils import handle_paginated_aws_api_call
 from datetime import datetime
+from mypy_boto3_rds.type_defs import DescribeDBLogFilesResponseTypeDef
 from pydantic import BaseModel, Field
 from typing import List
 
@@ -77,6 +78,25 @@ class DBLogFileSummary(BaseModel):
     )
     size: int = Field(description='Size of the log file in bytes', ge=0)
 
+    @classmethod
+    def from_DescribeDBLogFilesDetailsTypeDef(
+        cls, log_file: DescribeDBLogFilesResponseTypeDef
+    ) -> 'DBLogFileSummary':
+        """Convert AWS RDS log file details to DBLogFileSummary model.
+
+        Args:
+            log_file: Response dictionary containing log file details from RDS API
+                    including LogFileName, LastWritten timestamp and Size
+
+        Returns:
+            DBLogFileSummary: Model instance containing the log file information
+        """
+        return DBLogFileSummary(
+            log_file_name=log_file.get('LogFileName', ''),
+            last_written=datetime.fromtimestamp(log_file.get('LastWritten', 0) / 1000),
+            size=log_file.get('Size', 0),
+        )
+
 
 class DBLogFileList(BaseModel):
     """DB cluster list model."""
@@ -114,11 +134,7 @@ async def list_db_log_files(
         client=rds_client,
         paginator_name='describe_db_log_files',
         operation_parameters={'DBInstanceIdentifier': db_instance_identifier},
-        format_function=lambda x: DBLogFileSummary(
-            log_file_name=x.get('LogFileName', ''),
-            last_written=datetime.fromtimestamp(x.get('LastWritten', 0) / 1000),
-            size=x.get('Size', 0),
-        ),
+        format_function=DBLogFileSummary.from_DescribeDBLogFilesDetailsTypeDef,
         result_key='DescribeDBLogFiles',
     )
 

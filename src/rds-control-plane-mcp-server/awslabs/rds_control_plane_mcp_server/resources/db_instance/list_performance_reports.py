@@ -123,14 +123,12 @@ async def list_performance_reports(
 
     pi_client = PIConnectionManager.get_connection()
     reports: List[PerformanceReportSummary] = []
-    max_results = Context.max_items()
     next_token = None
 
-    while True:
+    while True and len(reports) < Context.max_items():
         request_params = {
             'ServiceType': 'RDS',
             'Identifier': dbi_resource_identifier,
-            'MaxResults': max_results,
         }
 
         if next_token:

@@ -25,6 +25,35 @@ from pydantic import BaseModel, Field
 from typing import Dict, List, Optional
 
 
+GET_CLUSTER_DETAIL_RESOURCE_DESCRIPTION = """Get detailed information about a specific Amazon RDS cluster.
+
+<use_case>
+Use this resource to retrieve comprehensive details about a specific RDS database cluster
+identified by its cluster ID. This provides deeper insights than the cluster list resource.
+</use_case>
+
+<important_notes>
+1. The cluster ID must exist in your AWS account and region
+2. The response contains full configuration details about the specified cluster
+3. This resource includes information not available in the list view such as parameter groups,
+   backup configuration, and maintenance windows
+4. Use the cluster list resource first to identify valid cluster IDs
+5. Error responses will be returned if the cluster doesn't exist or there are permission issues
+</important_notes>
+
+## Response structure
+Returns a JSON document containing detailed cluster information:
+- All fields from the list view plus:
+- `endpoint`: The primary endpoint for connecting to the cluster
+- `reader_endpoint`: The reader endpoint for read operations (if applicable)
+- `port`: The port the database engine is listening on
+- `parameter_group`: Database parameter group information
+- `backup_retention_period`: How long backups are retained (in days)
+- `preferred_backup_window`: When automated backups occur
+- `preferred_maintenance_window`: When maintenance operations can occur
+- `resource_uri`: The full resource URI for this specific cluster
+"""
+
 # Data Models
 
 
@@ -73,94 +102,57 @@ class Cluster(BaseModel):
     tags: Dict[str, str] = Field(default_factory=dict, description='A list of tags')
     resource_uri: Optional[str] = Field(None, description='The resource URI for this cluster')
 
+    @classmethod
+    def from_DBClusterTypeDef(cls, cluster: DBClusterTypeDef) -> 'Cluster':
+        """Format cluster information from AWS API response into a detailed structured model.
 
-# Helper Functions
+        Args:
+            cluster: Raw cluster data from AWS API response
 
-
-def format_cluster_detail(cluster: DBClusterTypeDef) -> Cluster:
-    """Format cluster information from AWS API response into a detailed structured model.
-
-    This method transforms the raw AWS API response data into a standardized
-    Cluster object, extracting and organizing key cluster attributes
-    including members, security groups, and tags.
-
-    Args:
-        cluster: Raw cluster data from AWS API response
-
-    Returns:
-        Formatted cluster information as a Cluster object with comprehensive details
-    """
-    members = []
-    for member in cluster.get('DBClusterMembers', []):
-        members.append(
-            ClusterMember(
-                instance_id=member.get('DBInstanceIdentifier', ''),
-                is_writer=member.get('IsClusterWriter', False),
-                status=member.get('DBClusterParameterGroupStatus'),
+        Returns:
+            Formatted cluster information as a Cluster object with comprehensive details
+        """
+        members = []
+        for member in cluster.get('DBClusterMembers', []):
+            members.append(
+                ClusterMember(
+                    instance_id=member.get('DBInstanceIdentifier', ''),
+                    is_writer=member.get('IsClusterWriter', False),
+                    status=member.get('DBClusterParameterGroupStatus'),
+                )
             )
+
+        vpc_security_groups = []
+        for sg in cluster.get('VpcSecurityGroups', []):
+            vpc_security_groups.append(
+                {'id': sg.get('VpcSecurityGroupId', ''), 'status': sg.get('Status', '')}
+            )
+
+        tags = {}
+        if cluster.get('TagList'):
+            for tag in cluster.get('TagList', []):
+                if 'Key' in tag and 'Value' in tag:
+                    tags[tag['Key']] = tag['Value']
+
+        cluster_id = cluster.get('DBClusterIdentifier', '')
+
+        return Cluster(
+            cluster_id=cluster_id,
+            status=cluster.get('Status', ''),
+            engine=cluster.get('Engine', ''),
+            engine_version=cluster.get('EngineVersion'),
+            endpoint=cluster.get('Endpoint'),
+            reader_endpoint=cluster.get('ReaderEndpoint'),
+            multi_az=cluster.get('MultiAZ', False),
+            backup_retention=cluster.get('BackupRetentionPeriod', 0),
+            preferred_backup_window=cluster.get('PreferredBackupWindow'),
+            preferred_maintenance_window=cluster.get('PreferredMaintenanceWindow'),
+            created_time=convert_datetime_to_string(cluster.get('ClusterCreateTime')),
+            members=members,
+            vpc_security_groups=vpc_security_groups,
+            tags=tags,
+            resource_uri=f'aws-rds://db-cluster/{cluster_id}',
         )
-
-    vpc_security_groups = []
-    for sg in cluster.get('VpcSecurityGroups', []):
-        vpc_security_groups.append(
-            {'id': sg.get('VpcSecurityGroupId', ''), 'status': sg.get('Status', '')}
-        )
-
-    tags = {}
-    if cluster.get('TagList'):
-        for tag in cluster.get('TagList', []):
-            if 'Key' in tag and 'Value' in tag:
-                tags[tag['Key']] = tag['Value']
-
-    cluster_id = cluster.get('DBClusterIdentifier', '')
-
-    return Cluster(
-        cluster_id=cluster_id,
-        status=cluster.get('Status', ''),
-        engine=cluster.get('Engine', ''),
-        engine_version=cluster.get('EngineVersion'),
-        endpoint=cluster.get('Endpoint'),
-        reader_endpoint=cluster.get('ReaderEndpoint'),
-        multi_az=cluster.get('MultiAZ', False),
-        backup_retention=cluster.get('BackupRetentionPeriod', 0),
-        preferred_backup_window=cluster.get('PreferredBackupWindow'),
-        preferred_maintenance_window=cluster.get('PreferredMaintenanceWindow'),
-        created_time=convert_datetime_to_string(cluster.get('ClusterCreateTime')),
-        members=members,
-        vpc_security_groups=vpc_security_groups,
-        tags=tags,
-        resource_uri=f'aws-rds://db-cluster/{cluster_id}',
-    )
-
-
-GET_CLUSTER_DETAIL_RESOURCE_DESCRIPTION = """Get detailed information about a specific Amazon RDS cluster.
-
-<use_case>
-Use this resource to retrieve comprehensive details about a specific RDS database cluster
-identified by its cluster ID. This provides deeper insights than the cluster list resource.
-</use_case>
-
-<important_notes>
-1. The cluster ID must exist in your AWS account and region
-2. The response contains full configuration details about the specified cluster
-3. This resource includes information not available in the list view such as parameter groups,
-   backup configuration, and maintenance windows
-4. Use the cluster list resource first to identify valid cluster IDs
-5. Error responses will be returned if the cluster doesn't exist or there are permission issues
-</important_notes>
-
-## Response structure
-Returns a JSON document containing detailed cluster information:
-- All fields from the list view plus:
-- `endpoint`: The primary endpoint for connecting to the cluster
-- `reader_endpoint`: The reader endpoint for read operations (if applicable)
-- `port`: The port the database engine is listening on
-- `parameter_group`: Database parameter group information
-- `backup_retention_period`: How long backups are retained (in days)
-- `preferred_backup_window`: When automated backups occur
-- `preferred_maintenance_window`: When maintenance operations can occur
-- `resource_uri`: The full resource URI for this specific cluster
-"""
 
 
 @mcp.resource(
@@ -192,6 +184,6 @@ async def get_cluster_detail(
     clusters = response.get('DBClusters', [])
     if not clusters:
         raise ValueError(f'Cluster {cluster_id} not found')
-    cluster = format_cluster_detail(clusters[0])
+    cluster = Cluster.from_DBClusterTypeDef(clusters[0])
 
     return cluster

@@ -43,6 +43,34 @@ class ClusterSummary(BaseModel):
     )
     tag_list: Dict[str, str] = Field(default_factory=dict, description='A dictionary of tags')
 
+    @classmethod
+    def from_DBClusterTypeDef(cls, cluster: DBClusterTypeDef) -> 'ClusterSummary':
+        """Format cluster information into a simplified summary model for list views.
+
+        Args:
+            cluster: Raw cluster data from AWS API response containing cluster details and configuration
+
+        Returns:
+            ClusterSummary: Formatted cluster summary information containing essential cluster details
+        """
+        tags = {}
+        if cluster.get('TagList'):
+            for tag in cluster.get('TagList', []):
+                if 'Key' in tag and 'Value' in tag:
+                    tags[tag['Key']] = tag['Value']
+
+        return ClusterSummary(
+            cluster_id=cluster.get('DBClusterIdentifier', ''),
+            db_cluster_arn=cluster.get('DBClusterArn'),
+            db_cluster_resource_id=cluster.get('DbClusterResourceId'),
+            status=cluster.get('Status', ''),
+            engine=cluster.get('Engine', ''),
+            engine_version=cluster.get('EngineVersion'),
+            availability_zones=cluster.get('AvailabilityZones', []),
+            multi_az=cluster.get('MultiAZ', False),
+            tag_list=tags,
+        )
+
 
 class ClusterSummaryList(BaseModel):
     """DB cluster list model containing cluster summaries and metadata."""
@@ -50,34 +78,6 @@ class ClusterSummaryList(BaseModel):
     clusters: List[ClusterSummary] = Field(description='List of DB clusters')
     count: int = Field(description='Number of DB clusters')
     resource_uri: str = Field(description='The resource URI for clusters')
-
-
-def format_cluster_summary(cluster: DBClusterTypeDef) -> ClusterSummary:
-    """Format cluster information into a simplified summary model for list views.
-
-    Args:
-        cluster: Raw cluster data from AWS API response containing cluster details and configuration
-
-    Returns:
-        ClusterSummary: Formatted cluster summary information containing essential cluster details
-    """
-    tags = {}
-    if cluster.get('TagList'):
-        for tag in cluster.get('TagList', []):
-            if 'Key' in tag and 'Value' in tag:
-                tags[tag['Key']] = tag['Value']
-
-    return ClusterSummary(
-        cluster_id=cluster.get('DBClusterIdentifier', ''),
-        db_cluster_arn=cluster.get('DBClusterArn'),
-        db_cluster_resource_id=cluster.get('DbClusterResourceId'),
-        status=cluster.get('Status', ''),
-        engine=cluster.get('Engine', ''),
-        engine_version=cluster.get('EngineVersion'),
-        availability_zones=cluster.get('AvailabilityZones', []),
-        multi_az=cluster.get('MultiAZ', False),
-        tag_list=tags,
-    )
 
 
 LIST_CLUSTERS_RESOURCE_DESCRIPTION = """List all available Amazon RDS clusters in your account.
@@ -128,7 +128,7 @@ async def list_clusters() -> ClusterSummaryList:
         client=rds_client,
         paginator_name='describe_db_clusters',
         operation_parameters={},
-        format_function=format_cluster_summary,
+        format_function=ClusterSummary.from_DBClusterTypeDef,
         result_key='DBClusters',
     )
 
