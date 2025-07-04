@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .constants import MCP_SERVER_VERSION
 from mcp.server.fastmcp import FastMCP
 
 
 """Common MCP server configuration."""
+
+SERVER_VERSION = '0.1.0'
 
 SERVER_INSTRUCTIONS = """
 This server provides access to Amazon RDS database instances and clusters.
@@ -34,7 +35,7 @@ SERVER_DEPENDENCIES = ['pydantic', 'loguru', 'boto3']
 
 mcp = FastMCP(
     'awslabs.rds-control-plane-mcp-server',
-    version=MCP_SERVER_VERSION,
+    version=SERVER_VERSION,
     instructions=SERVER_INSTRUCTIONS,
     dependencies=SERVER_DEPENDENCIES,
 )

@@ -12,34 +12,93 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Resource for listing availble RDS DB Clusters."""
+"""Resource for listing available RDS DB Clusters."""
 
 from ...common.connection import RDSConnectionManager
 from ...common.decorator import handle_exceptions
-from ...common.models import ClusterModel, ClusterListModel
 from ...common.server import mcp
 from ...common.utils import handle_paginated_aws_api_call
-from .utils import format_cluster_summary
 from loguru import logger
+from mypy_boto3_rds.type_defs import DBClusterTypeDef
+from pydantic import BaseModel, Field
+from typing import Dict, List, Optional
+
+
+class ClusterSummary(BaseModel):
+    """Simplified DB cluster model for list views."""
+
+    cluster_id: str = Field(description='The DB cluster identifier')
+    db_cluster_arn: Optional[str] = Field(None, description='The ARN of the DB cluster')
+    db_cluster_resource_id: Optional[str] = Field(
+        None, description='The resource ID of the DB cluster'
+    )
+    status: str = Field(description='The current status of the DB cluster')
+    engine: str = Field(description='The database engine')
+    engine_version: Optional[str] = Field(None, description='The version of the database engine')
+    availability_zones: List[str] = Field(
+        default_factory=list, description='The AZs where the cluster instances can be created'
+    )
+    multi_az: bool = Field(
+        description='Whether the DB cluster has instances in multiple Availability Zones'
+    )
+    tag_list: Dict[str, str] = Field(default_factory=dict, description='A dictionary of tags')
+
+    @classmethod
+    def from_DBClusterTypeDef(cls, cluster: DBClusterTypeDef) -> 'ClusterSummary':
+        """Format cluster information into a simplified summary model for list views.
+
+        Args:
+            cluster: Raw cluster data from AWS API response containing cluster details and configuration
+
+        Returns:
+            ClusterSummary: Formatted cluster summary information containing essential cluster details
+        """
+        tags = {}
+        if cluster.get('TagList'):
+            for tag in cluster.get('TagList', []):
+                if 'Key' in tag and 'Value' in tag:
+                    tags[tag['Key']] = tag['Value']
+
+        return ClusterSummary(
+            cluster_id=cluster.get('DBClusterIdentifier', ''),
+            db_cluster_arn=cluster.get('DBClusterArn'),
+            db_cluster_resource_id=cluster.get('DbClusterResourceId'),
+            status=cluster.get('Status', ''),
+            engine=cluster.get('Engine', ''),
+            engine_version=cluster.get('EngineVersion'),
+            availability_zones=cluster.get('AvailabilityZones', []),
+            multi_az=cluster.get('MultiAZ', False),
+            tag_list=tags,
+        )
+
+
+class ClusterSummaryList(BaseModel):
+    """DB cluster list model containing cluster summaries and metadata."""
+
+    clusters: List[ClusterSummary] = Field(description='List of DB clusters')
+    count: int = Field(description='Number of DB clusters')
+    resource_uri: str = Field(description='The resource URI for clusters')
 
 
 LIST_CLUSTERS_RESOURCE_DESCRIPTION = """List all available Amazon RDS clusters in your account.
 
 <use_case>
 Use this resource to discover all available RDS database clusters in your AWS account.
+This includes both Aurora clusters and Multi-AZ DB clusters.
 </use_case>
 
 <important_notes>
-1. The response provides essential information about each cluster
-2. Cluster identifiers returned can be used with the db-cluster/{cluster_id} resource
+1. The response provides essential information about each cluster including identifiers, status, and configuration
+2. Cluster identifiers returned can be used with the db-cluster/{cluster_id} resource for detailed operations
 3. Clusters are filtered to the AWS region specified in your environment configuration
+4. Results are paginated for efficient handling of large cluster lists
 </important_notes>
 
 ## Response structure
 Returns a JSON document containing:
-- `clusters`: Array of DB cluster objects
-- `count`: Number of clusters found
-- `resource_uri`: Base URI for accessing clusters
+- `clusters`: Array of DB cluster objects with essential cluster information
+- `count`: Total number of clusters found
+- `resource_uri`: Base URI for accessing cluster resources
 """
 
 
@@ -50,16 +109,17 @@ Returns a JSON document containing:
     mime_type='application/json',
 )
 @handle_exceptions
-async def list_clusters() -> ClusterListModel:
-    """List all RDS clusters.
+async def list_clusters() -> ClusterSummaryList:
+    """List all RDS clusters in the current AWS region.
 
     Retrieves a complete list of all RDS database clusters in the current AWS region,
-    including Aurora clusters and Multi-AZ DB clusters, with pagination handling
-    for large result sets.
+    including Aurora clusters and Multi-AZ DB clusters. The function handles pagination
+    automatically for large result sets and formats the cluster information into a
+    simplified summary model.
 
     Returns:
-        JSON string with formatted cluster information including identifiers,
-        endpoints, engine details, and other relevant metadata
+        ClusterSummaryList: Object containing list of formatted cluster summaries,
+        total count, and resource URI
     """
     logger.info('Listing RDS clusters')
     rds_client = RDSConnectionManager.get_connection()
@@ -68,11 +128,11 @@ async def list_clusters() -> ClusterListModel:
         client=rds_client,
         paginator_name='describe_db_clusters',
         operation_parameters={},
-        format_function=format_cluster_summary,
+        format_function=ClusterSummary.from_DBClusterTypeDef,
         result_key='DBClusters',
     )
 
-    result = ClusterListModel(
+    result = ClusterSummaryList(
         clusters=clusters, count=len(clusters), resource_uri='aws-rds://db-cluster'
     )
 

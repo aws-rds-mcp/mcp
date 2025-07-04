@@ -22,26 +22,6 @@ from typing import Any, Callable, Dict, List, TypeVar
 T = TypeVar('T', bound=object)
 
 
-def convert_datetime_to_string(obj: Any) -> Any:
-    """Recursively convert datetime objects to ISO format strings.
-
-    Args:
-        obj: Object to convert
-
-    Returns:
-        Object with datetime objects converted to strings
-    """
-    import datetime
-
-    if isinstance(obj, datetime.datetime):
-        return obj.isoformat()
-    elif isinstance(obj, dict):
-        return {k: convert_datetime_to_string(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [convert_datetime_to_string(item) for item in obj]
-    return obj
-
-
 def handle_paginated_aws_api_call(
     client: BaseClient,
     paginator_name: str,
