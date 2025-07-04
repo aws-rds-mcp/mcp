@@ -130,10 +130,15 @@ async def list_db_log_files(
     """
     rds_client = RDSConnectionManager.get_connection()
 
+    params = {
+        'DBInstanceIdentifier': db_instance_identifier,
+        'FileSize': 1,
+    }
+
     log_files = handle_paginated_aws_api_call(
         client=rds_client,
         paginator_name='describe_db_log_files',
-        operation_parameters={'DBInstanceIdentifier': db_instance_identifier},
+        operation_parameters=params,
         format_function=DBLogFileSummary.from_DescribeDBLogFilesDetailsTypeDef,
         result_key='DescribeDBLogFiles',
     )
