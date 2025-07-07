@@ -19,7 +19,6 @@ from ...common.connection import RDSConnectionManager
 from ...common.decorator import handle_exceptions
 from ...common.server import mcp
 from ...common.utils import (
-    check_readonly_mode,
     format_aws_response,
     format_cluster_info,
 )
@@ -144,7 +143,7 @@ async def modify_db_cluster(
     rds_client = RDSConnectionManager.get_connection()
 
     # if server is in readonly mode
-    if not check_readonly_mode('modify', Context.readonly_mode(), ctx):
+    if not Context.check_operation_allowed('modify', ctx):
         return {'error': ERROR_READONLY_MODE}
 
     try:

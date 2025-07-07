@@ -14,7 +14,6 @@
 
 """General utility functions for the RDS Control Plane MCP Server."""
 
-import asyncio
 import time
 import uuid
 from ..constants import (
@@ -25,7 +24,6 @@ from ..constants import (
     DEFAULT_PORT_ORACLE,
     DEFAULT_PORT_POSTGRESQL,
     DEFAULT_PORT_SQLSERVER,
-    ERROR_READONLY_MODE,
     MCP_SERVER_VERSION,
     OPERATION_IMPACTS,
 )
@@ -66,25 +64,6 @@ def handle_paginated_aws_api_call(
             results.append(format_function(item))
 
     return results
-
-
-def check_readonly_mode(operation: str, readonly: bool, ctx: Optional[Context] = None) -> bool:
-    """Check if operation is allowed in current mode.
-
-    Args:
-        operation: The operation being attempted
-        readonly: Whether server is in readonly mode
-        ctx: MCP context for error reporting
-
-    Returns:
-        True if operation is allowed, False otherwise
-    """
-    if readonly and operation not in ['describe', 'list', 'get']:
-        logger.warning(f'Operation {operation} blocked in readonly mode')
-        if ctx:
-            asyncio.create_task(ctx.error(ERROR_READONLY_MODE))
-        return False
-    return True
 
 
 def format_aws_response(response: Dict[str, Any]) -> Dict[str, Any]:

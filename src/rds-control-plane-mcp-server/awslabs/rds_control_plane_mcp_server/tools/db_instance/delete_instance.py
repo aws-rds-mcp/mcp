@@ -20,7 +20,6 @@ from ...common.decorator import handle_exceptions
 from ...common.server import mcp
 from ...common.utils import (
     add_pending_operation,
-    check_readonly_mode,
     format_aws_response,
     format_instance_info,
     get_operation_impact,
@@ -91,7 +90,7 @@ async def delete_db_instance(
     rds_client = RDSConnectionManager.get_connection()
 
     # if server is in readonly mode
-    if not check_readonly_mode('delete', Context.readonly_mode(), ctx):
+    if not Context.check_operation_allowed('delete', ctx):
         return {'error': ERROR_READONLY_MODE}
 
     # confirmation message and impact

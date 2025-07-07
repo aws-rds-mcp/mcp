@@ -19,7 +19,6 @@ from ...common.connection import RDSConnectionManager
 from ...common.decorator import handle_exceptions
 from ...common.server import mcp
 from ...common.utils import (
-    check_readonly_mode,
     format_aws_response,
     format_cluster_info,
     get_operation_impact,
@@ -128,7 +127,7 @@ async def status_db_cluster(
         return {'error': f'Invalid action: {action}. Must be one of: start, stop, reboot'}
 
     # check read-only mode
-    if not check_readonly_mode(action, Context.readonly_mode(), ctx):
+    if not Context.check_operation_allowed(action, ctx):
         return {'error': ERROR_READONLY_MODE}
 
     # define confirmation requirements and warning messages for each action
