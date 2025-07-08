@@ -15,7 +15,9 @@
 """Context management for Amazon RDS Control Plane MCP Server."""
 
 import asyncio
+from .constants import ERROR_READONLY_MODE
 from loguru import logger
+from mcp.server.fastmcp import Context
 from mypy_boto3_rds.type_defs import PaginatorConfigTypeDef
 from typing import Optional
 
@@ -67,7 +69,7 @@ class RDSContext:
         }
 
     @classmethod
-    def check_operation_allowed(cls, operation: str, ctx: Optional['RDSContext'] = None) -> bool:
+    def check_operation_allowed(cls, operation: str, ctx: Optional['Context'] = None) -> bool:
         """Check if operation is allowed in current mode.
 
         Args:
@@ -77,8 +79,6 @@ class RDSContext:
         Returns:
             True if operation is allowed, False otherwise
         """
-        from ..constants import ERROR_READONLY_MODE
-
         if cls._readonly and operation not in ['describe', 'list', 'get']:
             logger.warning(f'Operation {operation} blocked in readonly mode')
             if ctx:
