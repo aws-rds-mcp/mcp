@@ -15,6 +15,13 @@ The official MCP Server for interacting with AWS RDS control plane. This server 
 - `aws-rds://db-instance/{db_instance_identifier}/available_metrics` - List available metrics for a specific RDS instance
 - `aws-rds://db-instance/{db_instance_identifier}/log` - List all available non-empty log files for a specific RDS instance
 
+## Available Tools
+
+### DB Instance Tools
+
+- ReadDBLogFiles - Retrieve RDS database log file contents.
+
+
 ## Instructions
 
 The AWS RDS Control Plane MCP Server provides a comprehensive set of tools for monitoring, analyzing, and managing your Amazon RDS database instances and clusters. Each tool provides specific functionality for working with RDS resources, including performance analysis, log management, and accessing recommendations.

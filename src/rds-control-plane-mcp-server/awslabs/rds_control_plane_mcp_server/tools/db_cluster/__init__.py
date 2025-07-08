@@ -12,6 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This file is part of the awslabs namespace.
+# It is intentionally minimal to support PEP 420 namespace packages.
+
 """DB Cluster management tools for RDS Control Plane MCP Server."""
 
-from . import create_cluster, delete_cluster, modify_cluster, status_cluster, failover_cluster
+from .create_cluster import create_db_cluster
+from .delete_cluster import delete_db_cluster
+from .failover_cluster import failover_db_cluster
+from .modify_cluster import modify_db_cluster
+from .status_cluster import status_db_cluster
+
+__all__ = [
+    'create_db_cluster',
+    'delete_db_cluster',
+    'failover_db_cluster',
+    'modify_db_cluster',
+    'status_db_cluster',
+]

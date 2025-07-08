@@ -12,6 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""DB Instance management tools for RDS Control Plane MCP Server."""
+# This file is part of the awslabs namespace.
+# It is intentionally minimal to support PEP 420 namespace packages.
 
-from . import create_instance, delete_instance, modify_instance, status_instance
+from .read_db_log_file import read_db_log_file
+from .create_instance import create_db_instance
+from .delete_instance import delete_db_instance
+from .modify_instance import modify_db_instance
+from .status_instance import status_db_instance
+
+__all__ = [
+    'read_db_log_file',
+    'create_db_instance',
+    'delete_db_instance',
+    'modify_db_instance',
+    'status_db_instance',
+]
