@@ -131,7 +131,7 @@ async def create_db_cluster(
     engine_version: Annotated[
         Optional[str], Field(description='The version number of the database engine to use')
     ] = None,
-    ctx: FastMCPContext = None,
+    ctx: Optional[FastMCPContext] = None,
 ) -> Dict[str, Any]:
     """Create a new RDS database cluster.
 

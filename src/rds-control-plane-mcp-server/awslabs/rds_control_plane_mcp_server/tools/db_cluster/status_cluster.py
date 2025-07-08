@@ -107,7 +107,7 @@ async def status_db_cluster(
     confirmation: Annotated[
         Optional[str], Field(description='Confirmation text for destructive operations')
     ] = None,
-    ctx: FastMCPContext = None,
+    ctx: Optional[FastMCPContext] = None,
 ) -> Dict[str, Any]:
     """Manage the status of an RDS database cluster.
 
@@ -169,6 +169,8 @@ async def status_db_cluster(
         return {
             'error': f'Confirmation value must be exactly "{required_confirmation}" to proceed with this operation. Operation aborted.'
         }
+
+    result = {}
 
     if action == 'start':
         logger.info(f'Starting DB cluster {db_cluster_identifier}')

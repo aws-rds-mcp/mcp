@@ -157,7 +157,7 @@ async def create_db_instance(
         Optional[int],
         Field(description='The number of days for which automated backups are retained'),
     ] = None,
-    ctx: FastMCPContext = None,
+    ctx: Optional[FastMCPContext] = None,
 ) -> Dict[str, Any]:
     """Create a new RDS database instance.
 

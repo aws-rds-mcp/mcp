@@ -125,7 +125,7 @@ async def modify_db_instance(
         Optional[bool],
         Field(description='Specifies whether the DB instance is publicly accessible'),
     ] = None,
-    ctx: FastMCPContext = None,
+    ctx: Optional[FastMCPContext] = None,
 ) -> Dict[str, Any]:
     """Modify an existing RDS database instance configuration.
 

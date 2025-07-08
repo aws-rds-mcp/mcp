@@ -102,7 +102,7 @@ async def failover_db_cluster(
     confirmation: Annotated[
         Optional[str], Field(description='Confirmation text for destructive operation')
     ] = None,
-    ctx: FastMCPContext = None,
+    ctx: Optional[FastMCPContext] = None,
 ) -> Dict[str, Any]:
     """Force a failover for an RDS database cluster.
 

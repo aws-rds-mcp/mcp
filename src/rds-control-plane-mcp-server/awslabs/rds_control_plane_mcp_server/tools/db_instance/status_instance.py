@@ -74,7 +74,7 @@ async def status_db_instance(
     confirmation: Annotated[
         Optional[str], Field(description='Confirmation text for destructive operations')
     ] = None,
-    ctx: FastMCPContext = None,
+    ctx: Optional[FastMCPContext] = None,
 ) -> Dict[str, Any]:
     """Manage the status of an RDS database instance.
 
@@ -138,6 +138,8 @@ async def status_db_instance(
         return {
             'error': f'Confirmation value must be exactly "{required_confirmation}" to proceed with this operation. Operation aborted.'
         }
+
+    result = {}
 
     if action == 'start':
         logger.info(f'Starting DB instance {db_instance_identifier}')

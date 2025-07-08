@@ -116,7 +116,7 @@ async def modify_db_cluster(
     allow_major_version_upgrade: Annotated[
         Optional[bool], Field(description='Indicates whether major version upgrades are allowed')
     ] = None,
-    ctx: FastMCPContext = None,
+    ctx: Optional[FastMCPContext] = None,
 ) -> Dict[str, Any]:
     """Modify an existing RDS database cluster configuration.
 
