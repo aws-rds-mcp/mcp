@@ -18,7 +18,7 @@ import asyncio
 from ...common.connection import PIConnectionManager
 from ...common.decorator import handle_exceptions
 from ...common.server import mcp
-from ...context import Context
+from ...context import RDSContext
 from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import List, Literal, Optional
@@ -126,7 +126,7 @@ async def list_performance_reports(
     reports: List[PerformanceReportSummary] = []
     next_token = None
 
-    while True and len(reports) < Context.max_items():
+    while True and len(reports) < RDSContext.max_items():
         request_params = {
             'ServiceType': 'RDS',
             'Identifier': dbi_resource_identifier,

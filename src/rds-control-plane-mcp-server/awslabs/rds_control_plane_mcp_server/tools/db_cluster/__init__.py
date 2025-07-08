@@ -15,16 +15,18 @@
 # This file is part of the awslabs namespace.
 # It is intentionally minimal to support PEP 420 namespace packages.
 
-from .read_db_log_file import read_db_log_file
-from .create_instance import create_db_instance
-from .delete_instance import delete_db_instance
-from .modify_instance import modify_db_instance
-from .status_instance import status_db_instance
+"""DB Cluster management tools for RDS Control Plane MCP Server."""
+
+from .create_cluster import create_db_cluster
+from .delete_cluster import delete_db_cluster
+from .failover_cluster import failover_db_cluster
+from .modify_cluster import modify_db_cluster
+from .status_cluster import status_db_cluster
 
 __all__ = [
-    'read_db_log_file',
-    'create_db_instance',
-    'delete_db_instance',
-    'modify_db_instance',
-    'status_db_instance',
+    'create_db_cluster',
+    'delete_db_cluster',
+    'failover_db_cluster',
+    'modify_db_cluster',
+    'status_db_cluster',
 ]

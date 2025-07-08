@@ -44,6 +44,7 @@ dependencies = [
     { name = "loguru" },
     { name = "mcp", extra = ["cli"] },
     { name = "mypy-boto3" },
+    { name = "mypy-boto3-rds" },
     { name = "pydantic" },
 ]
 
@@ -65,6 +66,7 @@ requires-dist = [
     { name = "loguru", specifier = ">=0.7.0" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.6.0" },
     { name = "mypy-boto3", specifier = ">=1.39.0" },
+    { name = "mypy-boto3-rds", specifier = ">=1.38.0" },
     { name = "pydantic", specifier = ">=2.10.6" },
 ]
 
@@ -574,6 +576,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/84/4e/14b4dd044d2d2ea3fda373d2c35dc3b759112629c080ad37fff87eec8835/mypy_boto3-1.39.0.tar.gz", hash = "sha256:8c775c47afc6a2117b9f4487afb6622b864f9d96a5461ca58a1a10613c36b47b", size = 22324, upload-time = "2025-06-30T19:55:15.234Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fc/bc/baf5ee3e3a9ca236310834ecfc805a23a4c3c8ddfc8fc89aa90bc79f15b1/mypy_boto3-1.39.0-py3-none-any.whl", hash = "sha256:abb851683297ba27d76fb1e7fd39d89e8603f44f4d372f54373b46ba15a95df3", size = 22307, upload-time = "2025-06-30T19:55:12.498Z" },
+]
+
+[[package]]
+name = "mypy-boto3-rds"
+version = "1.39.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ff/d2/30c9a9a4dbf147a9cff5561279c02c15630a455e483a5e60444ddb108796/mypy_boto3_rds-1.39.0.tar.gz", hash = "sha256:742a6a3e4b2f7d6e0202d23926f1a1e8c73d032121b241b862acace0ee261351", size = 85174, upload-time = "2025-06-30T19:47:01.259Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/66/70/63d31e00ab9fb659c242296d088cf32f11b2f0fcea76d5c2d7f8d39a0b53/mypy_boto3_rds-1.39.0-py3-none-any.whl", hash = "sha256:f227df70f98f5127e8cd4663fe266cb5e22636ed3f193b039f2faac91bef5c13", size = 91429, upload-time = "2025-06-30T19:46:59.55Z" },
 ]
 
 [[package]]

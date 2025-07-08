@@ -12,19 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This file is part of the awslabs namespace.
-# It is intentionally minimal to support PEP 420 namespace packages.
+"""RDS Control Plane MCP Server tools."""
 
-from .read_db_log_file import read_db_log_file
-from .create_instance import create_db_instance
-from .delete_instance import delete_db_instance
-from .modify_instance import modify_db_instance
-from .status_instance import status_db_instance
-
-__all__ = [
-    'read_db_log_file',
-    'create_db_instance',
-    'delete_db_instance',
-    'modify_db_instance',
-    'status_db_instance',
-]
+from . import db_cluster, db_instance
