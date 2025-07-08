@@ -200,86 +200,83 @@ async def create_db_instance(
             await ctx.error(error_msg)
         return {'error': error_msg}
 
-    try:
-        params = {
-            'DBInstanceIdentifier': db_instance_identifier,
-            'DBInstanceClass': db_instance_class,
-            'Engine': engine,
-        }
+    params = {
+        'DBInstanceIdentifier': db_instance_identifier,
+        'DBInstanceClass': db_instance_class,
+        'Engine': engine,
+    }
 
-        # Different parameter requirements based on whether this is a cluster instance
-        if db_cluster_identifier:
-            # Instance for existing cluster
-            params['DBClusterIdentifier'] = db_cluster_identifier
-        else:
-            # Standalone instance needs additional parameters
-            if allocated_storage is None:
-                error_msg = ERROR_INVALID_PARAMS.format(
-                    'allocated_storage is required for standalone instances'
-                )
-                if ctx:
-                    await ctx.error(error_msg)
-                return {'error': error_msg}
+    # Different parameter requirements based on whether this is a cluster instance
+    if db_cluster_identifier:
+        # Instance for existing cluster
+        params['DBClusterIdentifier'] = db_cluster_identifier
+    else:
+        # Standalone instance needs additional parameters
+        if allocated_storage is None:
+            error_msg = ERROR_INVALID_PARAMS.format(
+                'allocated_storage is required for standalone instances'
+            )
+            if ctx:
+                await ctx.error(error_msg)
+            return {'error': error_msg}
 
-            if (
-                master_username is None
-                and not master_user_password
-                and not manage_master_user_password
-            ):
-                error_msg = ERROR_INVALID_PARAMS.format(
-                    'master_username and either master_user_password or manage_master_user_password are required for standalone instances'
-                )
-                if ctx:
-                    await ctx.error(error_msg)
-                return {'error': error_msg}
+        if (
+            master_username is None
+            and not master_user_password
+            and not manage_master_user_password
+        ):
+            error_msg = ERROR_INVALID_PARAMS.format(
+                'master_username and either master_user_password or manage_master_user_password are required for standalone instances'
+            )
+            if ctx:
+                await ctx.error(error_msg)
+            return {'error': error_msg}
 
-            params['AllocatedStorage'] = allocated_storage
+        params['AllocatedStorage'] = allocated_storage
 
-            if master_username:
-                params['MasterUsername'] = master_username
+        if master_username:
+            params['MasterUsername'] = master_username
 
-            if master_user_password:
-                params['MasterUserPassword'] = master_user_password
-            elif manage_master_user_password:
-                params['ManageMasterUserPassword'] = manage_master_user_password
+        if master_user_password:
+            params['MasterUserPassword'] = master_user_password
+        elif manage_master_user_password:
+            params['ManageMasterUserPassword'] = manage_master_user_password
 
-        # Add optional parameters if provided
-        if db_name:
-            params['DBName'] = db_name
-        if vpc_security_group_ids:
-            params['VpcSecurityGroupIds'] = vpc_security_group_ids
-        if availability_zone:
-            params['AvailabilityZone'] = availability_zone
-        if db_subnet_group_name:
-            params['DBSubnetGroupName'] = db_subnet_group_name
-        if multi_az is not None:
-            params['MultiAZ'] = multi_az
-        if engine_version:
-            params['EngineVersion'] = engine_version
-        if storage_type:
-            params['StorageType'] = storage_type
-        if storage_encrypted is not None:
-            params['StorageEncrypted'] = storage_encrypted
-        if port is not None:
-            params['Port'] = port
-        elif not db_cluster_identifier:  # Don't set port for cluster instances
-            params['Port'] = get_engine_port(engine)
-        if publicly_accessible is not None:
-            params['PubliclyAccessible'] = publicly_accessible
-        if backup_retention_period is not None:
-            params['BackupRetentionPeriod'] = backup_retention_period
+    # Add optional parameters if provided
+    if db_name:
+        params['DBName'] = db_name
+    if vpc_security_group_ids:
+        params['VpcSecurityGroupIds'] = vpc_security_group_ids
+    if availability_zone:
+        params['AvailabilityZone'] = availability_zone
+    if db_subnet_group_name:
+        params['DBSubnetGroupName'] = db_subnet_group_name
+    if multi_az is not None:
+        params['MultiAZ'] = multi_az
+    if engine_version:
+        params['EngineVersion'] = engine_version
+    if storage_type:
+        params['StorageType'] = storage_type
+    if storage_encrypted is not None:
+        params['StorageEncrypted'] = storage_encrypted
+    if port is not None:
+        params['Port'] = port
+    elif not db_cluster_identifier:  # Don't set port for cluster instances
+        params['Port'] = get_engine_port(engine)
+    if publicly_accessible is not None:
+        params['PubliclyAccessible'] = publicly_accessible
+    if backup_retention_period is not None:
+        params['BackupRetentionPeriod'] = backup_retention_period
 
-        # MCP tags
-        params = add_mcp_tags(params)
+    # MCP tags
+    params = add_mcp_tags(params)
 
-        logger.info(f'Creating DB instance {db_instance_identifier} with engine {engine}')
-        response = await asyncio.to_thread(rds_client.create_db_instance, **params)
-        logger.success(f'Successfully created DB instance {db_instance_identifier}')
+    logger.info(f'Creating DB instance {db_instance_identifier} with engine {engine}')
+    response = await asyncio.to_thread(rds_client.create_db_instance, **params)
+    logger.success(f'Successfully created DB instance {db_instance_identifier}')
 
-        result = format_aws_response(response)
-        result['message'] = SUCCESS_CREATED.format(f'DB instance {db_instance_identifier}')
-        result['formatted_instance'] = format_instance_info(result.get('DBInstance', {}))
+    result = format_aws_response(response)
+    result['message'] = SUCCESS_CREATED.format(f'DB instance {db_instance_identifier}')
+    result['formatted_instance'] = format_instance_info(result.get('DBInstance', {}))
 
-        return result
-    except Exception as e:
-        raise e
+    return result

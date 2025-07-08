@@ -138,44 +138,39 @@ async def status_db_instance(
             'error': f'Confirmation value must be exactly "{required_confirmation}" to proceed with this operation. Operation aborted.'
         }
 
-    try:
-        if action == 'start':
-            logger.info(f'Starting DB instance {db_instance_identifier}')
-            response = await asyncio.to_thread(
-                rds_client.start_db_instance, DBInstanceIdentifier=db_instance_identifier
-            )
-            logger.success(f'Successfully started DB instance {db_instance_identifier}')
+    if action == 'start':
+        logger.info(f'Starting DB instance {db_instance_identifier}')
+        response = await asyncio.to_thread(
+            rds_client.start_db_instance, DBInstanceIdentifier=db_instance_identifier
+        )
+        logger.success(f'Successfully started DB instance {db_instance_identifier}')
 
-            result = format_aws_response(response)
-            result['message'] = SUCCESS_STARTED.format(f'DB instance {db_instance_identifier}')
+        result = format_aws_response(response)
+        result['message'] = SUCCESS_STARTED.format(f'DB instance {db_instance_identifier}')
 
-        elif action == 'stop':
-            logger.info(f'Stopping DB instance {db_instance_identifier}')
-            response = await asyncio.to_thread(
-                rds_client.stop_db_instance, DBInstanceIdentifier=db_instance_identifier
-            )
-            logger.success(f'Successfully stopped DB instance {db_instance_identifier}')
+    elif action == 'stop':
+        logger.info(f'Stopping DB instance {db_instance_identifier}')
+        response = await asyncio.to_thread(
+            rds_client.stop_db_instance, DBInstanceIdentifier=db_instance_identifier
+        )
+        logger.success(f'Successfully stopped DB instance {db_instance_identifier}')
 
-            result = format_aws_response(response)
-            result['message'] = SUCCESS_STOPPED.format(f'DB instance {db_instance_identifier}')
+        result = format_aws_response(response)
+        result['message'] = SUCCESS_STOPPED.format(f'DB instance {db_instance_identifier}')
 
-        elif action == 'reboot':
-            logger.info(f'Rebooting DB instance {db_instance_identifier}')
-            response = await asyncio.to_thread(
-                rds_client.reboot_db_instance,
-                DBInstanceIdentifier=db_instance_identifier,
-                ForceFailover=force_failover,
-            )
-            logger.success(
-                f'Successfully initiated reboot of DB instance {db_instance_identifier}'
-            )
+    elif action == 'reboot':
+        logger.info(f'Rebooting DB instance {db_instance_identifier}')
+        response = await asyncio.to_thread(
+            rds_client.reboot_db_instance,
+            DBInstanceIdentifier=db_instance_identifier,
+            ForceFailover=force_failover,
+        )
+        logger.success(f'Successfully initiated reboot of DB instance {db_instance_identifier}')
 
-            result = format_aws_response(response)
-            result['message'] = SUCCESS_REBOOTED.format(f'DB instance {db_instance_identifier}')
+        result = format_aws_response(response)
+        result['message'] = SUCCESS_REBOOTED.format(f'DB instance {db_instance_identifier}')
 
-        # add formatted instance info to the result
-        result['formatted_instance'] = format_instance_info(result.get('DBInstance', {}))
+    # add formatted instance info to the result
+    result['formatted_instance'] = format_instance_info(result.get('DBInstance', {}))
 
-        return result
-    except Exception as e:
-        raise e
+    return result

@@ -187,27 +187,24 @@ This operation cannot be undone.
             'error': 'Parameter mismatch. The confirmation token is for a different DB cluster.'
         }
 
-    try:
-        # remove the pending operation
-        remove_pending_operation(confirmation_token)
+    # remove the pending operation
+    remove_pending_operation(confirmation_token)
 
-        # AWS API parameters
-        aws_params = {
-            'DBClusterIdentifier': db_cluster_identifier,
-            'SkipFinalSnapshot': skip_final_snapshot,
-        }
+    # AWS API parameters
+    aws_params = {
+        'DBClusterIdentifier': db_cluster_identifier,
+        'SkipFinalSnapshot': skip_final_snapshot,
+    }
 
-        if not skip_final_snapshot and final_db_snapshot_identifier:
-            aws_params['FinalDBSnapshotIdentifier'] = final_db_snapshot_identifier
+    if not skip_final_snapshot and final_db_snapshot_identifier:
+        aws_params['FinalDBSnapshotIdentifier'] = final_db_snapshot_identifier
 
-        logger.info(f'Deleting DB cluster {db_cluster_identifier}')
-        response = await asyncio.to_thread(rds_client.delete_db_cluster, **aws_params)
-        logger.success(f'Successfully initiated deletion of DB cluster {db_cluster_identifier}')
+    logger.info(f'Deleting DB cluster {db_cluster_identifier}')
+    response = await asyncio.to_thread(rds_client.delete_db_cluster, **aws_params)
+    logger.success(f'Successfully initiated deletion of DB cluster {db_cluster_identifier}')
 
-        result = format_aws_response(response)
-        result['message'] = f'Successfully deleted DB cluster {db_cluster_identifier}'
-        result['formatted_cluster'] = format_cluster_info(result.get('DBCluster', {}))
+    result = format_aws_response(response)
+    result['message'] = f'Successfully deleted DB cluster {db_cluster_identifier}'
+    result['formatted_cluster'] = format_cluster_info(result.get('DBCluster', {}))
 
-        return result
-    except Exception as e:
-        raise e
+    return result

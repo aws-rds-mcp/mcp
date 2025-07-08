@@ -166,43 +166,40 @@ async def create_db_cluster(
             await ctx.error(error_msg)
         return {'error': error_msg}
 
-    try:
-        params = {
-            'DBClusterIdentifier': db_cluster_identifier,
-            'Engine': engine,
-            'MasterUsername': master_username,
-            'ManageMasterUserPassword': True,
-        }
+    params = {
+        'DBClusterIdentifier': db_cluster_identifier,
+        'Engine': engine,
+        'MasterUsername': master_username,
+        'ManageMasterUserPassword': True,
+    }
 
-        # add optional parameters if provided
-        if database_name:
-            params['DatabaseName'] = database_name
-        if vpc_security_group_ids:
-            params['VpcSecurityGroupIds'] = vpc_security_group_ids
-        if db_subnet_group_name:
-            params['DBSubnetGroupName'] = db_subnet_group_name
-        if availability_zones:
-            params['AvailabilityZones'] = availability_zones
-        if backup_retention_period is not None:
-            params['BackupRetentionPeriod'] = backup_retention_period
-        if port is not None:
-            params['Port'] = port
-        else:
-            params['Port'] = get_engine_port(engine)
-        if engine_version:
-            params['EngineVersion'] = engine_version
+    # add optional parameters if provided
+    if database_name:
+        params['DatabaseName'] = database_name
+    if vpc_security_group_ids:
+        params['VpcSecurityGroupIds'] = vpc_security_group_ids
+    if db_subnet_group_name:
+        params['DBSubnetGroupName'] = db_subnet_group_name
+    if availability_zones:
+        params['AvailabilityZones'] = availability_zones
+    if backup_retention_period is not None:
+        params['BackupRetentionPeriod'] = backup_retention_period
+    if port is not None:
+        params['Port'] = port
+    else:
+        params['Port'] = get_engine_port(engine)
+    if engine_version:
+        params['EngineVersion'] = engine_version
 
-        # MCP tags
-        params = add_mcp_tags(params)
+    # MCP tags
+    params = add_mcp_tags(params)
 
-        logger.info(f'Creating DB cluster {db_cluster_identifier} with engine {engine}')
-        response = await asyncio.to_thread(rds_client.create_db_cluster, **params)
-        logger.success(f'Successfully created DB cluster {db_cluster_identifier}')
+    logger.info(f'Creating DB cluster {db_cluster_identifier} with engine {engine}')
+    response = await asyncio.to_thread(rds_client.create_db_cluster, **params)
+    logger.success(f'Successfully created DB cluster {db_cluster_identifier}')
 
-        result = format_aws_response(response)
-        result['message'] = SUCCESS_CREATED.format(f'DB cluster {db_cluster_identifier}')
-        result['formatted_cluster'] = format_cluster_info(result.get('DBCluster', {}))
+    result = format_aws_response(response)
+    result['message'] = SUCCESS_CREATED.format(f'DB cluster {db_cluster_identifier}')
+    result['formatted_cluster'] = format_cluster_info(result.get('DBCluster', {}))
 
-        return result
-    except Exception as e:
-        raise e
+    return result

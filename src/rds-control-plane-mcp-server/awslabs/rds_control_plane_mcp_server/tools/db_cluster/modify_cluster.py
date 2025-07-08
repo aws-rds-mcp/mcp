@@ -139,35 +139,32 @@ async def modify_db_cluster(
     if not Context.check_operation_allowed('modify', ctx):
         return {'error': ERROR_READONLY_MODE}
 
-    try:
-        params = {
-            'DBClusterIdentifier': db_cluster_identifier,
-        }
+    params = {
+        'DBClusterIdentifier': db_cluster_identifier,
+    }
 
-        # Add optional parameters if provided
-        if apply_immediately is not None:
-            params['ApplyImmediately'] = apply_immediately
-        if backup_retention_period is not None:
-            params['BackupRetentionPeriod'] = backup_retention_period
-        if db_cluster_parameter_group_name:
-            params['DBClusterParameterGroupName'] = db_cluster_parameter_group_name
-        if vpc_security_group_ids:
-            params['VpcSecurityGroupIds'] = vpc_security_group_ids
-        if port is not None:
-            params['Port'] = port
-        if engine_version:
-            params['EngineVersion'] = engine_version
-        if allow_major_version_upgrade is not None:
-            params['AllowMajorVersionUpgrade'] = allow_major_version_upgrade
+    # Add optional parameters if provided
+    if apply_immediately is not None:
+        params['ApplyImmediately'] = apply_immediately
+    if backup_retention_period is not None:
+        params['BackupRetentionPeriod'] = backup_retention_period
+    if db_cluster_parameter_group_name:
+        params['DBClusterParameterGroupName'] = db_cluster_parameter_group_name
+    if vpc_security_group_ids:
+        params['VpcSecurityGroupIds'] = vpc_security_group_ids
+    if port is not None:
+        params['Port'] = port
+    if engine_version:
+        params['EngineVersion'] = engine_version
+    if allow_major_version_upgrade is not None:
+        params['AllowMajorVersionUpgrade'] = allow_major_version_upgrade
 
-        logger.info(f'Modifying DB cluster {db_cluster_identifier}')
-        response = await asyncio.to_thread(rds_client.modify_db_cluster, **params)
-        logger.success(f'Successfully modified DB cluster {db_cluster_identifier}')
+    logger.info(f'Modifying DB cluster {db_cluster_identifier}')
+    response = await asyncio.to_thread(rds_client.modify_db_cluster, **params)
+    logger.success(f'Successfully modified DB cluster {db_cluster_identifier}')
 
-        result = format_aws_response(response)
-        result['message'] = SUCCESS_MODIFIED.format(f'DB cluster {db_cluster_identifier}')
-        result['formatted_cluster'] = format_cluster_info(result.get('DBCluster', {}))
+    result = format_aws_response(response)
+    result['message'] = SUCCESS_MODIFIED.format(f'DB cluster {db_cluster_identifier}')
+    result['formatted_cluster'] = format_cluster_info(result.get('DBCluster', {}))
 
-        return result
-    except Exception as e:
-        raise e
+    return result

@@ -144,27 +144,24 @@ async def delete_db_instance(
             'error': 'Parameter mismatch. The confirmation token is for a different DB instance.'
         }
 
-    try:
-        # remove the pending operation
-        remove_pending_operation(confirmation_token)
+    # remove the pending operation
+    remove_pending_operation(confirmation_token)
 
-        # AWS API parameters
-        aws_params = {
-            'DBInstanceIdentifier': db_instance_identifier,
-            'SkipFinalSnapshot': skip_final_snapshot,
-        }
+    # AWS API parameters
+    aws_params = {
+        'DBInstanceIdentifier': db_instance_identifier,
+        'SkipFinalSnapshot': skip_final_snapshot,
+    }
 
-        if not skip_final_snapshot and final_db_snapshot_identifier:
-            aws_params['FinalDBSnapshotIdentifier'] = final_db_snapshot_identifier
+    if not skip_final_snapshot and final_db_snapshot_identifier:
+        aws_params['FinalDBSnapshotIdentifier'] = final_db_snapshot_identifier
 
-        logger.info(f'Deleting DB instance {db_instance_identifier}')
-        response = await asyncio.to_thread(rds_client.delete_db_instance, **aws_params)
-        logger.success(f'Successfully initiated deletion of DB instance {db_instance_identifier}')
+    logger.info(f'Deleting DB instance {db_instance_identifier}')
+    response = await asyncio.to_thread(rds_client.delete_db_instance, **aws_params)
+    logger.success(f'Successfully initiated deletion of DB instance {db_instance_identifier}')
 
-        result = format_aws_response(response)
-        result['message'] = SUCCESS_DELETED.format(f'DB instance {db_instance_identifier}')
-        result['formatted_instance'] = format_instance_info(result.get('DBInstance', {}))
+    result = format_aws_response(response)
+    result['message'] = SUCCESS_DELETED.format(f'DB instance {db_instance_identifier}')
+    result['formatted_instance'] = format_instance_info(result.get('DBInstance', {}))
 
-        return result
-    except Exception as e:
-        raise e
+    return result

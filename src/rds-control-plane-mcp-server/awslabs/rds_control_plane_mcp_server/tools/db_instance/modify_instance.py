@@ -157,53 +157,50 @@ async def modify_db_instance(
     if not Context.check_operation_allowed('modify', ctx):
         return {'error': ERROR_READONLY_MODE}
 
-    try:
-        params = {
-            'DBInstanceIdentifier': db_instance_identifier,
-        }
+    params = {
+        'DBInstanceIdentifier': db_instance_identifier,
+    }
 
-        # Add optional parameters if provided
-        if apply_immediately is not None:
-            params['ApplyImmediately'] = apply_immediately
-        if allocated_storage is not None:
-            params['AllocatedStorage'] = allocated_storage
-        if db_instance_class:
-            params['DBInstanceClass'] = db_instance_class
-        if storage_type:
-            params['StorageType'] = storage_type
-        if master_user_password:
-            params['MasterUserPassword'] = master_user_password
-        if manage_master_user_password is not None:
-            params['ManageMasterUserPassword'] = manage_master_user_password
-        if vpc_security_group_ids:
-            params['VpcSecurityGroupIds'] = vpc_security_group_ids
-        if db_parameter_group_name:
-            params['DBParameterGroupName'] = db_parameter_group_name
-        if backup_retention_period is not None:
-            params['BackupRetentionPeriod'] = backup_retention_period
-        if preferred_backup_window:
-            params['PreferredBackupWindow'] = preferred_backup_window
-        if preferred_maintenance_window:
-            params['PreferredMaintenanceWindow'] = preferred_maintenance_window
-        if multi_az is not None:
-            params['MultiAZ'] = multi_az
-        if engine_version:
-            params['EngineVersion'] = engine_version
-        if allow_major_version_upgrade is not None:
-            params['AllowMajorVersionUpgrade'] = allow_major_version_upgrade
-        if auto_minor_version_upgrade is not None:
-            params['AutoMinorVersionUpgrade'] = auto_minor_version_upgrade
-        if publicly_accessible is not None:
-            params['PubliclyAccessible'] = publicly_accessible
+    # Add optional parameters if provided
+    if apply_immediately is not None:
+        params['ApplyImmediately'] = apply_immediately
+    if allocated_storage is not None:
+        params['AllocatedStorage'] = allocated_storage
+    if db_instance_class:
+        params['DBInstanceClass'] = db_instance_class
+    if storage_type:
+        params['StorageType'] = storage_type
+    if master_user_password:
+        params['MasterUserPassword'] = master_user_password
+    if manage_master_user_password is not None:
+        params['ManageMasterUserPassword'] = manage_master_user_password
+    if vpc_security_group_ids:
+        params['VpcSecurityGroupIds'] = vpc_security_group_ids
+    if db_parameter_group_name:
+        params['DBParameterGroupName'] = db_parameter_group_name
+    if backup_retention_period is not None:
+        params['BackupRetentionPeriod'] = backup_retention_period
+    if preferred_backup_window:
+        params['PreferredBackupWindow'] = preferred_backup_window
+    if preferred_maintenance_window:
+        params['PreferredMaintenanceWindow'] = preferred_maintenance_window
+    if multi_az is not None:
+        params['MultiAZ'] = multi_az
+    if engine_version:
+        params['EngineVersion'] = engine_version
+    if allow_major_version_upgrade is not None:
+        params['AllowMajorVersionUpgrade'] = allow_major_version_upgrade
+    if auto_minor_version_upgrade is not None:
+        params['AutoMinorVersionUpgrade'] = auto_minor_version_upgrade
+    if publicly_accessible is not None:
+        params['PubliclyAccessible'] = publicly_accessible
 
-        logger.info(f'Modifying DB instance {db_instance_identifier}')
-        response = await asyncio.to_thread(rds_client.modify_db_instance, **params)
-        logger.success(f'Successfully modified DB instance {db_instance_identifier}')
+    logger.info(f'Modifying DB instance {db_instance_identifier}')
+    response = await asyncio.to_thread(rds_client.modify_db_instance, **params)
+    logger.success(f'Successfully modified DB instance {db_instance_identifier}')
 
-        result = format_aws_response(response)
-        result['message'] = SUCCESS_MODIFIED.format(f'DB instance {db_instance_identifier}')
-        result['formatted_instance'] = format_instance_info(result.get('DBInstance', {}))
+    result = format_aws_response(response)
+    result['message'] = SUCCESS_MODIFIED.format(f'DB instance {db_instance_identifier}')
+    result['formatted_instance'] = format_instance_info(result.get('DBInstance', {}))
 
-        return result
-    except Exception as e:
-        raise e
+    return result
