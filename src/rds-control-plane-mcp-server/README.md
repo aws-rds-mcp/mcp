@@ -133,6 +133,7 @@ The following CLI arguments can be passed when running the server:
 --max-items 100                # Maximum number of items returned from API responses
 --port 8888                    # Port to run the server on
 --readonly                     # Whether to run in readonly mode (prevents mutating operations)
+--no-readonly                  # Whether to turn off readonly mode (allow mutating operations)
 ```
 
 ```json
