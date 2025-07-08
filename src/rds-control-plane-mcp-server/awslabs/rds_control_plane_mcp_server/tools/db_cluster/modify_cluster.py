@@ -109,12 +109,6 @@ async def modify_db_cluster(
         Optional[int],
         Field(description='The port number on which the DB cluster accepts connections'),
     ] = None,
-    manage_master_user_password: Annotated[
-        Optional[bool],
-        Field(
-            description='Specifies whether to manage the master user password with Amazon Web Services Secrets Manager'
-        ),
-    ] = None,
     engine_version: Annotated[
         Optional[str], Field(description='The version number of the database engine to upgrade to')
     ] = None,
@@ -132,7 +126,6 @@ async def modify_db_cluster(
         db_cluster_parameter_group_name: The name of the DB cluster parameter group to use
         vpc_security_group_ids: A list of EC2 VPC security groups to associate with this DB cluster
         port: The port number on which the DB cluster accepts connections
-        manage_master_user_password: Specifies whether to manage the master user password with AWS Secrets Manager
         engine_version: The version number of the database engine to upgrade to
         allow_major_version_upgrade: Indicates whether major version upgrades are allowed
         ctx: MCP context for logging and state management
@@ -162,8 +155,6 @@ async def modify_db_cluster(
             params['VpcSecurityGroupIds'] = vpc_security_group_ids
         if port is not None:
             params['Port'] = port
-        if manage_master_user_password is not None:
-            params['ManageMasterUserPassword'] = manage_master_user_password
         if engine_version:
             params['EngineVersion'] = engine_version
         if allow_major_version_upgrade is not None:

@@ -48,7 +48,7 @@ You'll need to create DB instances separately after the cluster is available.
 <important_notes>
 1. Cluster identifiers must follow naming rules: 1-63 alphanumeric characters, must begin with a letter
 2. The tool will automatically determine default port numbers based on the engine if not specified
-3. Using manage_master_user_password=True (default) will store the password in AWS Secrets Manager
+3. Master user passwords are stored securely in AWS Secrets Manager
 4. Not all parameter combinations are valid for all database engines
 5. When run with readonly=True (default), this operation will be simulated but not actually performed
 </important_notes>
@@ -101,12 +101,6 @@ async def create_db_cluster(
     master_username: Annotated[
         str, Field(description='The name of the master user for the DB cluster')
     ],
-    manage_master_user_password: Annotated[
-        Optional[bool],
-        Field(
-            description='Specifies whether to manage the master user password with Amazon Web Services Secrets Manager'
-        ),
-    ] = True,
     database_name: Annotated[
         Optional[str], Field(description='The name for your database')
     ] = None,
@@ -144,7 +138,6 @@ async def create_db_cluster(
         db_cluster_identifier: The identifier for the DB cluster
         engine: The name of the database engine to be used for this DB cluster
         master_username: The name of the master user for the DB cluster
-        manage_master_user_password: Specifies whether to manage the master user password with AWS Secrets Manager
         database_name: The name for your database
         vpc_security_group_ids: A list of EC2 VPC security groups to associate with this DB cluster
         db_subnet_group_name: A DB subnet group to associate with this DB cluster
@@ -178,7 +171,7 @@ async def create_db_cluster(
             'DBClusterIdentifier': db_cluster_identifier,
             'Engine': engine,
             'MasterUsername': master_username,
-            'ManageMasterUserPassword': manage_master_user_password,
+            'ManageMasterUserPassword': True,
         }
 
         # add optional parameters if provided
