@@ -41,7 +41,7 @@ SUCCESS_SNAPSHOT_CREATED = 'Snapshot {} has been created successfully.'
 SUCCESS_RESTORED = '{} has been restored successfully.'
 
 # Error messages
-ERROR_READONLY_MODE = 'This operation is not allowed in read-only mode. Please run the server with --readonly false to enable write operations.'
+ERROR_READONLY_MODE = 'This operation is not allowed in read-only mode. Please run the server with --no-readonly to enable write operations.'
 ERROR_AWS_API = 'AWS API Error ({}). Please check the error details and try again.'
 ERROR_UNEXPECTED = 'Unexpected error: {}. Please try again or check the logs for more information.'
 ERROR_INVALID_PARAMETER = 'Invalid parameter: {}. Please check the parameter values and try again.'
