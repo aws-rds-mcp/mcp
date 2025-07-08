@@ -26,8 +26,9 @@ from ...constants import (
     ERROR_READONLY_MODE,
     SUCCESS_MODIFIED,
 )
+from ...context import RDSContext
 from loguru import logger
-from mcp.server.fastmcp import Context
+from mcp.server.fastmcp import Context as FastMCPContext
 from pydantic import Field
 from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated
@@ -115,7 +116,7 @@ async def modify_db_cluster(
     allow_major_version_upgrade: Annotated[
         Optional[bool], Field(description='Indicates whether major version upgrades are allowed')
     ] = None,
-    ctx: Context = None,
+    ctx: FastMCPContext = None,
 ) -> Dict[str, Any]:
     """Modify an existing RDS database cluster configuration.
 
@@ -136,7 +137,7 @@ async def modify_db_cluster(
     rds_client = RDSConnectionManager.get_connection()
 
     # if server is in readonly mode
-    if not Context.check_operation_allowed('modify', ctx):
+    if not RDSContext.check_operation_allowed('modify', ctx):
         return {'error': ERROR_READONLY_MODE}
 
     params = {

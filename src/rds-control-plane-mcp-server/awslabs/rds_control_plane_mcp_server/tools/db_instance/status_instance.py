@@ -32,8 +32,9 @@ from ...constants import (
     SUCCESS_STARTED,
     SUCCESS_STOPPED,
 )
+from ...context import RDSContext
 from loguru import logger
-from mcp.server.fastmcp import Context
+from mcp.server.fastmcp import Context as FastMCPContext
 from pydantic import Field
 from typing import Any, Dict, Optional
 from typing_extensions import Annotated
@@ -73,7 +74,7 @@ async def status_db_instance(
     confirmation: Annotated[
         Optional[str], Field(description='Confirmation text for destructive operations')
     ] = None,
-    ctx: Context = None,
+    ctx: FastMCPContext = None,
 ) -> Dict[str, Any]:
     """Manage the status of an RDS database instance.
 
@@ -96,7 +97,7 @@ async def status_db_instance(
         return {'error': f'Invalid action: {action}. Must be one of: start, stop, reboot'}
 
     # check read-only mode
-    if not Context.check_operation_allowed(action, ctx):
+    if not RDSContext.check_operation_allowed(action, ctx):
         return {'error': ERROR_READONLY_MODE}
 
     # define confirmation requirements and warning messages for each action

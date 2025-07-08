@@ -30,8 +30,9 @@ from ...constants import (
     ERROR_READONLY_MODE,
     SUCCESS_CREATED,
 )
+from ...context import RDSContext
 from loguru import logger
-from mcp.server.fastmcp import Context
+from mcp.server.fastmcp import Context as FastMCPContext
 from pydantic import Field
 from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated
@@ -130,7 +131,7 @@ async def create_db_cluster(
     engine_version: Annotated[
         Optional[str], Field(description='The version number of the database engine to use')
     ] = None,
-    ctx: Context = None,
+    ctx: FastMCPContext = None,
 ) -> Dict[str, Any]:
     """Create a new RDS database cluster.
 
@@ -154,7 +155,7 @@ async def create_db_cluster(
     rds_client = RDSConnectionManager.get_connection()
 
     # Check if server is in readonly mode
-    if not Context.check_operation_allowed('create', ctx):
+    if not RDSContext.check_operation_allowed('create', ctx):
         return {'error': ERROR_READONLY_MODE}
 
     # validate identifier

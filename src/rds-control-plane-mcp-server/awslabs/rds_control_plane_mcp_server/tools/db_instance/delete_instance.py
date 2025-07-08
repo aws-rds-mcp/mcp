@@ -30,8 +30,9 @@ from ...constants import (
     ERROR_READONLY_MODE,
     SUCCESS_DELETED,
 )
+from ...context import RDSContext
 from loguru import logger
-from mcp.server.fastmcp import Context
+from mcp.server.fastmcp import Context as FastMCPContext
 from pydantic import Field
 from typing import Any, Dict, Optional
 from typing_extensions import Annotated
@@ -73,7 +74,7 @@ async def delete_db_instance(
     confirmation_token: Annotated[
         Optional[str], Field(description='The confirmation token for the operation')
     ] = None,
-    ctx: Context = None,
+    ctx: FastMCPContext = None,
 ) -> Dict[str, Any]:
     """Delete an RDS database instance.
 
@@ -90,7 +91,7 @@ async def delete_db_instance(
     rds_client = RDSConnectionManager.get_connection()
 
     # if server is in readonly mode
-    if not Context.check_operation_allowed('delete', ctx):
+    if not RDSContext.check_operation_allowed('delete', ctx):
         return {'error': ERROR_READONLY_MODE}
 
     # confirmation message and impact

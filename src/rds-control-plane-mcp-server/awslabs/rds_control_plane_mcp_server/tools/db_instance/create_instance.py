@@ -30,8 +30,9 @@ from ...constants import (
     ERROR_READONLY_MODE,
     SUCCESS_CREATED,
 )
+from ...context import RDSContext
 from loguru import logger
-from mcp.server.fastmcp import Context
+from mcp.server.fastmcp import Context as FastMCPContext
 from pydantic import Field
 from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated
@@ -156,7 +157,7 @@ async def create_db_instance(
         Optional[int],
         Field(description='The number of days for which automated backups are retained'),
     ] = None,
-    ctx: Context = None,
+    ctx: FastMCPContext = None,
 ) -> Dict[str, Any]:
     """Create a new RDS database instance.
 
@@ -188,7 +189,7 @@ async def create_db_instance(
     rds_client = RDSConnectionManager.get_connection()
 
     # if server is in readonly mode
-    if not Context.check_operation_allowed('create', ctx):
+    if not RDSContext.check_operation_allowed('create', ctx):
         return {'error': ERROR_READONLY_MODE}
 
     # validate identifier

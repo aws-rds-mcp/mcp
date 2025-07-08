@@ -26,8 +26,9 @@ from ...common.utils import (
     get_pending_operation,
     remove_pending_operation,
 )
+from ...context import RDSContext
 from loguru import logger
-from mcp.server.fastmcp import Context
+from mcp.server.fastmcp import Context as FastMCPContext
 from pydantic import Field
 from typing import Any, Dict, Optional
 from typing_extensions import Annotated
@@ -108,7 +109,7 @@ async def delete_db_cluster(
     confirmation_token: Annotated[
         Optional[str], Field(description='The confirmation token for the operation')
     ] = None,
-    ctx: Context = None,
+    ctx: FastMCPContext = None,
 ) -> Dict[str, Any]:
     """Delete an RDS database cluster.
 
@@ -125,7 +126,7 @@ async def delete_db_cluster(
     rds_client = RDSConnectionManager.get_connection()
 
     # if server is in readonly mode
-    if not Context.check_operation_allowed('delete', ctx):
+    if not RDSContext.check_operation_allowed('delete', ctx):
         return {
             'error': 'This operation requires write access. The server is currently in read-only mode.'
         }

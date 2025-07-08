@@ -27,7 +27,7 @@ from ..constants import (
     MCP_SERVER_VERSION,
     OPERATION_IMPACTS,
 )
-from ..context import Context
+from ..context import RDSContext
 from botocore.client import BaseClient
 from loguru import logger
 from typing import Any, Callable, Dict, List, Optional, TypeVar
@@ -57,7 +57,7 @@ def handle_paginated_aws_api_call(
     """
     results = []
     paginator = client.get_paginator(paginator_name)
-    operation_parameters['PaginationConfig'] = Context.get_pagination_config()
+    operation_parameters['PaginationConfig'] = RDSContext.get_pagination_config()
     page_iterator = paginator.paginate(**operation_parameters)
     for page in page_iterator:
         for item in page.get(result_key, []):

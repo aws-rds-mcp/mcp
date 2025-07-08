@@ -27,8 +27,9 @@ from ...constants import (
     CONFIRM_FAILOVER,
     ERROR_READONLY_MODE,
 )
+from ...context import RDSContext
 from loguru import logger
-from mcp.server.fastmcp import Context
+from mcp.server.fastmcp import Context as FastMCPContext
 from pydantic import Field
 from typing import Any, Dict, Optional
 from typing_extensions import Annotated
@@ -101,7 +102,7 @@ async def failover_db_cluster(
     confirmation: Annotated[
         Optional[str], Field(description='Confirmation text for destructive operation')
     ] = None,
-    ctx: Context = None,
+    ctx: FastMCPContext = None,
 ) -> Dict[str, Any]:
     """Force a failover for an RDS database cluster.
 
@@ -117,7 +118,7 @@ async def failover_db_cluster(
     rds_client = RDSConnectionManager.get_connection()
 
     # if server is in readonly mode
-    if not Context.check_operation_allowed('failover', ctx):
+    if not RDSContext.check_operation_allowed('failover', ctx):
         return {'error': ERROR_READONLY_MODE}
 
     # get confirmation message and impact

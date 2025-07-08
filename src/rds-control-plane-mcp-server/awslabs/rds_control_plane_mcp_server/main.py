@@ -17,7 +17,7 @@
 import argparse
 import awslabs.rds_control_plane_mcp_server.tools  # noqa: F401 - imported for side effects to register tools
 from awslabs.rds_control_plane_mcp_server.common.server import mcp
-from awslabs.rds_control_plane_mcp_server.context import Context
+from awslabs.rds_control_plane_mcp_server.context import RDSContext
 from awslabs.rds_control_plane_mcp_server.resources import (  # noqa: F401 - imported for side effects to register resources
     db_cluster,
     db_instance,
@@ -48,7 +48,7 @@ def main():
     args = parser.parse_args()
 
     mcp.settings.port = args.port
-    Context.initialize(args.readonly, args.max_items)
+    RDSContext.initialize(args.readonly, args.max_items)
 
     logger.info('Starting RDS Control Plane MCP Server')
 

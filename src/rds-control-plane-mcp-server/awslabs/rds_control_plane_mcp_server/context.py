@@ -20,7 +20,7 @@ from mypy_boto3_rds.type_defs import PaginatorConfigTypeDef
 from typing import Optional
 
 
-class Context:
+class RDSContext:
     """Context class for RDS Control Plane MCP Server."""
 
     _readonly = True
@@ -67,7 +67,7 @@ class Context:
         }
 
     @classmethod
-    def check_operation_allowed(cls, operation: str, ctx: Optional['Context'] = None) -> bool:
+    def check_operation_allowed(cls, operation: str, ctx: Optional['RDSContext'] = None) -> bool:
         """Check if operation is allowed in current mode.
 
         Args:
