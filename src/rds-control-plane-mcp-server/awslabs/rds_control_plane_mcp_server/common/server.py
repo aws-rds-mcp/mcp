@@ -31,7 +31,7 @@ Key capabilities:
 The server operates in read-only mode by default, providing safe access to RDS resources.
 """
 
-SERVER_DEPENDENCIES = ['pydantic', 'loguru', 'boto3', 'mypy-boto3-rds']
+SERVER_DEPENDENCIES = ['pydantic', 'loguru', 'boto3', 'mypy-boto3-rds', 'mypy-boto3-cloudwatch']
 
 mcp = FastMCP(
     'awslabs.rds-control-plane-mcp-server',

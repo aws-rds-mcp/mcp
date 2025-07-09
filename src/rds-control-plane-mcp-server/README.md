@@ -17,6 +17,11 @@ The official MCP Server for interacting with AWS RDS control plane. This server 
 
 ## Available Tools
 
+### General Tools
+
+- DescribeRDSEvents - List events for RDS resources (instances, clusters, snapshots, etc.) with filtering by category, time period, and source type.
+- DescribeRDSPerformanceMetrics - Retrieve performance metrics for RDS resources with configurable statistics and time ranges.
+
 ### DB Instance Tools
 
 - ReadDBLogFiles - Retrieve RDS database log file contents.

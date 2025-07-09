@@ -91,7 +91,7 @@ class DBLogFileSummary(BaseModel):
         Returns:
             DBLogFileSummary: Model instance containing the log file information
         """
-        return DBLogFileSummary(
+        return cls(
             log_file_name=log_file.get('LogFileName', ''),
             last_written=datetime.fromtimestamp(log_file.get('LastWritten', 0) / 1000),
             size=log_file.get('Size', 0),

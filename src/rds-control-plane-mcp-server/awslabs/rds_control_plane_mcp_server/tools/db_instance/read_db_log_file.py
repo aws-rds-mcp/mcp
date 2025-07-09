@@ -14,7 +14,6 @@
 
 """read_rds_db_logs data models, helpers and tool implementation."""
 
-import asyncio
 from ...common.connection import RDSConnectionManager
 from ...common.decorator import handle_exceptions
 from ...common.server import mcp
@@ -85,12 +84,7 @@ def preprocess_log_content(log_file_content: str, pattern: Optional[str] = None)
     if not pattern or not log_file_content:
         return log_file_content
 
-    filtered_lines = []
-    for line in log_file_content.splitlines():
-        if pattern in line:
-            filtered_lines.append(line)
-
-    return '\n'.join(filtered_lines)
+    return '\n'.join(line for line in log_file_content.splitlines() if pattern in line)
 
 
 @mcp.tool(
@@ -102,7 +96,7 @@ def preprocess_log_content(log_file_content: str, pattern: Optional[str] = None)
     ),
 )
 @handle_exceptions
-async def read_db_log_file(
+def read_db_log_file(
     db_instance_identifier: str = Field(
         ...,
         description='The identifier of the RDS instance (DBInstanceIdentifier, not DbiResourceId) to read logs from.',
@@ -151,11 +145,11 @@ async def read_db_log_file(
     if marker:
         params['Marker'] = marker
 
-    response = await asyncio.to_thread(rds_client.download_db_log_file_portion, **params)
+    response = rds_client.download_db_log_file_portion(**params)
 
     result = DBLogFileResponse(
         log_content=preprocess_log_content(response.get('LogFileData', ''), pattern=pattern),
-        next_marker=response.get('NextToken', None),
+        next_marker=response.get('Marker', None),
         additional_data_pending=response.get('AdditionalDataPending', False),
     )
 

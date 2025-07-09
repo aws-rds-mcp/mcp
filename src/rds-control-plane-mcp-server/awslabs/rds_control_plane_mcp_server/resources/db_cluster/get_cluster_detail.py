@@ -136,7 +136,7 @@ class Cluster(BaseModel):
 
         cluster_id = cluster.get('DBClusterIdentifier', '')
 
-        return Cluster(
+        return cls(
             cluster_id=cluster_id,
             status=cluster.get('Status', ''),
             engine=cluster.get('Engine', ''),

@@ -83,3 +83,11 @@ class PIConnectionManager(BaseConnectionManager):
     _client: Optional[Any] = None
     _service_name = 'pi'
     _env_prefix = 'PI'
+
+
+class CloudwatchConnectionManager(BaseConnectionManager):
+    """Manages connection to Cloudwatch using boto3."""
+
+    _client: Optional[Any] = None
+    _service_name = 'cloudwatch'
+    _env_prefix = 'CLOUDWATCH'
