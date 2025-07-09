@@ -66,7 +66,14 @@ class MetricSummary(BaseModel):
 
     @classmethod
     def from_metric_data(cls, metric_data: MetricDataResultTypeDef) -> 'MetricSummary':
-        """Create MetricSummary from CloudWatch metric data."""
+        """Create MetricSummary from CloudWatch metric data.
+
+        Args:
+            metric_data: CloudWatch metric data result containing Values, Timestamps, StatusCode and other fields
+
+        Returns:
+            MetricSummary: Object containing summarized metric data
+        """
         values = metric_data.get('Values', [])
         timestamps = metric_data.get('Timestamps', [])
         status = metric_data.get('StatusCode', 'Complete')
