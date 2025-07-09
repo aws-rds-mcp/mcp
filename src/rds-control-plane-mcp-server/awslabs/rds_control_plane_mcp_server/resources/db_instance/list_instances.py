@@ -64,7 +64,7 @@ class InstanceSummary(BaseModel):
                 if 'Key' in tag and 'Value' in tag:
                     tags[tag['Key']] = tag['Value']
 
-        return InstanceSummary(
+        return cls(
             instance_id=instance.get('DBInstanceIdentifier', ''),
             dbi_resource_id=instance.get('DbiResourceId'),
             status=instance.get('DBInstanceStatus', ''),

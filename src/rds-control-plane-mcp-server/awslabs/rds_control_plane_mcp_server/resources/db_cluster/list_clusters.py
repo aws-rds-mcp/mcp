@@ -59,7 +59,7 @@ class ClusterSummary(BaseModel):
                 if 'Key' in tag and 'Value' in tag:
                     tags[tag['Key']] = tag['Value']
 
-        return ClusterSummary(
+        return cls(
             cluster_id=cluster.get('DBClusterIdentifier', ''),
             db_cluster_arn=cluster.get('DBClusterArn'),
             db_cluster_resource_id=cluster.get('DbClusterResourceId'),

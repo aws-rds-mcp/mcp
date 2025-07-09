@@ -152,7 +152,7 @@ class Instance(BaseModel):
                 if 'Key' in tag and 'Value' in tag:
                     tags[tag['Key']] = tag['Value']
 
-        return Instance(
+        return cls(
             instance_id=instance.get('DBInstanceIdentifier', ''),
             status=instance.get('DBInstanceStatus', ''),
             engine=instance.get('Engine', ''),
