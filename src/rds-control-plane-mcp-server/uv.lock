@@ -44,6 +44,7 @@ dependencies = [
     { name = "loguru" },
     { name = "mcp", extra = ["cli"] },
     { name = "mypy-boto3" },
+    { name = "mypy-boto3-cloudwatch" },
     { name = "mypy-boto3-rds" },
     { name = "pydantic" },
 ]
@@ -66,6 +67,7 @@ requires-dist = [
     { name = "loguru", specifier = ">=0.7.0" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.6.0" },
     { name = "mypy-boto3", specifier = ">=1.39.0" },
+    { name = "mypy-boto3-cloudwatch", specifier = ">=1.39.0" },
     { name = "mypy-boto3-rds", specifier = ">=1.38.0" },
     { name = "pydantic", specifier = ">=2.10.6" },
 ]
@@ -576,6 +578,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/84/4e/14b4dd044d2d2ea3fda373d2c35dc3b759112629c080ad37fff87eec8835/mypy_boto3-1.39.0.tar.gz", hash = "sha256:8c775c47afc6a2117b9f4487afb6622b864f9d96a5461ca58a1a10613c36b47b", size = 22324, upload-time = "2025-06-30T19:55:15.234Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fc/bc/baf5ee3e3a9ca236310834ecfc805a23a4c3c8ddfc8fc89aa90bc79f15b1/mypy_boto3-1.39.0-py3-none-any.whl", hash = "sha256:abb851683297ba27d76fb1e7fd39d89e8603f44f4d372f54373b46ba15a95df3", size = 22307, upload-time = "2025-06-30T19:55:12.498Z" },
+]
+
+[[package]]
+name = "mypy-boto3-cloudwatch"
+version = "1.39.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8d/b2/274277b7e205e0e82fa1b90b6088fb23b094e6b54841163801ccf3f681f6/mypy_boto3_cloudwatch-1.39.0.tar.gz", hash = "sha256:509defcbe55fd26887b9e53372026969cff72403192889f2c238a3631ecda069", size = 32800, upload-time = "2025-06-30T19:35:31.248Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a2/d0/7f87b6cbfac2555f18f5fce2c5c377c384028ebfe300f05dd18734a43aba/mypy_boto3_cloudwatch-1.39.0-py3-none-any.whl", hash = "sha256:cc6a3892409be8d5eb2137323b5af6913eb90d8c95fe2cf0dbec53a5e9b5a9fc", size = 44226, upload-time = "2025-06-30T19:35:29.82Z" },
 ]
 
 [[package]]
