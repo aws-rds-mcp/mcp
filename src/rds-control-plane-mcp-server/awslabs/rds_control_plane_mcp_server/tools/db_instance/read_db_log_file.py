@@ -22,7 +22,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 
 
-TOOL_DESCRIPTION = """Read database log files from RDS instances.
+READ_LOG_FILE_TOOL_DESCRIPTION = """Read database log files from RDS instances.
 
 This tool retrieves contents of database log files from Amazon RDS instances.
 It allows you to download log file portions, search for specific patterns,
@@ -89,7 +89,7 @@ def preprocess_log_content(log_file_content: str, pattern: Optional[str] = None)
 
 @mcp.tool(
     name='ReadDBLogFiles',
-    description=TOOL_DESCRIPTION,
+    description=READ_LOG_FILE_TOOL_DESCRIPTION,
     annotations=ToolAnnotations(
         title='Read RDS DB Log Files',
         readOnlyHint=True,

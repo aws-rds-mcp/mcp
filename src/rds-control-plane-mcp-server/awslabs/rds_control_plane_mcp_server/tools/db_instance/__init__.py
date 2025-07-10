@@ -20,6 +20,7 @@ from .create_instance import create_db_instance
 from .delete_instance import delete_db_instance
 from .modify_instance import modify_db_instance
 from .status_instance import status_db_instance
+from .create_performance_report import create_performance_report
 
 __all__ = [
     'read_db_log_file',
@@ -27,4 +28,5 @@ __all__ = [
     'delete_db_instance',
     'modify_db_instance',
     'status_db_instance',
+    'create_performance_report',
 ]

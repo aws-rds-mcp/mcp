@@ -107,7 +107,7 @@ class EventList(BaseModel):
     count: int = Field(..., description='Total number of events')
 
 
-TOOL_DESCRIPTION = """List events for an RDS resource.
+DESCRIBE_EVENTS_TOOL_DESCRIPTION = """List events for an RDS resource.
 
     This tool retrieves events for RDS resources such as DB instances, clusters,
     security groups, etc. Events can be filtered by source identifier, category,
@@ -157,7 +157,7 @@ TOOL_DESCRIPTION = """List events for an RDS resource.
 
 @mcp.tool(
     name='DescribeRDSEvents',
-    description=TOOL_DESCRIPTION,
+    description=DESCRIBE_EVENTS_TOOL_DESCRIPTION,
     annotations=ToolAnnotations(
         title='DescribeRDSEvents',
         readOnlyHint=True,
