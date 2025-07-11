@@ -127,7 +127,7 @@ class MetricSummaryList(BaseModel):
     time_period: str = Field(..., description='Query time period')
 
 
-TOOL_DESCRIPTION = """Retrieve performance metrics for RDS resources.
+DESCRIBE_PERF_METRICS_TOOL_DESCRIPTION = """Retrieve performance metrics for RDS resources.
 
     This tool fetches detailed performance metrics for Amazon RDS resources including
     instances, clusters, and global clusters. It allows you to query metrics over a
@@ -179,7 +179,7 @@ TOOL_DESCRIPTION = """Retrieve performance metrics for RDS resources.
 
 @mcp.tool(
     name='DescribeRDSPerformanceMetrics',
-    description=TOOL_DESCRIPTION,
+    description=DESCRIBE_PERF_METRICS_TOOL_DESCRIPTION,
     annotations=ToolAnnotations(
         title='DescribeRDSPerformanceMetrics',
         readOnlyHint=True,

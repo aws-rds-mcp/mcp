@@ -25,7 +25,7 @@ The official MCP Server for interacting with AWS RDS control plane. This server 
 ### DB Instance Tools
 
 - ReadDBLogFiles - Retrieve RDS database log file contents.
-
+- CreatePerformanceReport - Generate a comprehensive performance report for RDS resources including metrics, events, and recommendations.
 
 ## Instructions
 
